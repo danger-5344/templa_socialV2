@@ -500,7 +500,7 @@ def personalized_tag_create(request):
 def personalized_tag_edit(request, pk):
     obj = get_object_or_404(PersonalizedTag, pk=pk, user=request.user)
     if request.method == "POST":
-        form = PersonalizedTagForm(request.POST, instance=obj)
+        form = PersonalizedTagForm(request.POST, instance=obj, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, "Personalized tags updated.")

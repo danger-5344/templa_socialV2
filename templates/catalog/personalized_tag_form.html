@@ -8,10 +8,17 @@
     {% csrf_token %}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div>
-        <label style="display:block;font-weight:600;margin-bottom:6px">Platform</label>
-        {{form.platform}}
-        {% for e in form.platform.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
-      </div>
+  <label style="display:block;font-weight:600;margin-bottom:6px">Platform</label>
+  {% if edit %}
+    <input type="text" value="{{ platform_name }}" readonly>
+  {% else %}
+    {{ form.platform }}
+  {% endif %}
+  {% for e in form.platform.errors %}
+    <div style="color:#b91c1c">{{ e }}</div>
+  {% endfor %}
+</div>
+
       <div>
         <label style="display:block;font-weight:600;margin-bottom:6px">Active</label>
         {{ form.is_active }}

@@ -506,8 +506,16 @@ def personalized_tag_edit(request, pk):
             messages.success(request, "Personalized tags updated.")
             return redirect("catalog:personalized_tag_list")
     else:
-        form = PersonalizedTagForm(instance=obj)
-    return render(request, "catalog/personalized_tag_form.html", {"form": form, "edit": True, "obj": obj})
+        form = PersonalizedTagForm(instance=obj, user=request.user)
+
+    # Pass platform name directly to template
+    platform_name = obj.platform.name if obj.platform else ""
+
+    return render(
+        request,
+        "catalog/personalized_tag_form.html",
+        {"form": form, "edit": True, "obj": obj, "platform_name": platform_name}
+    )
 
 # @login_required
 # def personalized_tag_delete(request, pk):

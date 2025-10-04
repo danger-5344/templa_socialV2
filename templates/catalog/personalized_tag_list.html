@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width:900px;margin:auto">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h2 style="margin:0">Personalized Tags</h2>
+    <div style="display:flex;gap:8px">
+      <a class="btn" href="{% url 'catalog:personalized_tag_add' %}">➕ Add Tag Set</a>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
+    {% for t in tags %}
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
+        <div>
+          <div style="font-weight:700">{{ t.platform.name }} {% if not t.is_active %}<span class="muted">· inactive</span>{% endif %}</div>
+          <div class="muted" style="font-size:13px">First: {{ t.first_name_tag }} · Last: {{ t.last_name_tag }} · Date: {{ t.date_tag }}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <a class="btn-outline" href="{% url 'catalog:personalized_tag_edit' t.pk %}">Edit</a>
+          <form method="get" action="{% url 'catalog:personalized_tag_delete' t.pk %}" style="margin:0">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+    {% empty %}
+      <div class="card">No personalized tags defined yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

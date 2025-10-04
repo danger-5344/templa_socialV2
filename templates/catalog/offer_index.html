@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+/* ---------- Page-scoped styles (safe to inline) ---------- */
+/* Excel Upload Form */
+.excel-upload-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 6px 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.01);
+}
+
+.excel-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.excel-input {
+  display: none; /* hide default file input */
+}
+
+.excel-btn {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  border-radius: 7px;
+}
+
+/* Optional: highlight label on hover */
+.excel-label:hover {
+  color: #2563eb;
+}
+.ol-wrap{max-width:1200px;margin:0 auto}
+.ol-head{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:flex-end;margin-bottom:16px}
+.ol-title{margin:0;font-size:24px;font-weight:800;color:#111827;letter-spacing:-.01em}
+.ol-sub{color:#6b7280;font-size:14px}
+
+.ol-actions{display:flex;flex-wrap:wrap;gap:10px}
+.btn, .btn-outline, .btn-danger{
+  display:inline-flex;align-items:center;justify-content:center;
+  height:38px;padding:0 14px;border-radius:10px;font-weight:600;font-size:14px;white-space:nowrap;cursor:pointer;text-decoration:none
+}
+.btn{background:#111827;color:#fff;border:1px solid #111827}
+.btn-outline{background:#fff;color:#111827;border:1px solid #111827}
+.btn-danger{background:#dc2626;color:#fff;border:1px solid #dc2626}
+.btn:hover{opacity:.95}
+.btn-outline:hover{background:#111827;color:#fff}
+.btn-danger:hover{background:#b91c1c;border-color:#b91c1c}
+
+/* Card system */
+.ol-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+.ol-section{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.ol-section + .ol-section{margin-top:10px}
+
+/* Network block */
+.ol-network{margin-bottom:16px}
+.ol-h3{margin:0;font-size:18px;font-weight:800;letter-spacing:-.01em;display:flex;gap:8px;align-items:center}
+.ol-meta{color:#6b7280;font-size:12px}
+
+/* Offer accordion */
+.ol-offer{margin-top:12px;border:1px dashed #e5e7eb;border-radius:12px;overflow:hidden;background:#fcfcfd}
+.ol-offer summary{
+  list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-weight:700
+}
+.ol-offer summary::-webkit-details-marker{display:none}
+.ol-offer[open] summary{background:#f9fafb}
+.ol-offer-body{padding:12px 14px;border-top:1px solid #eef0f2}
+
+/* Inline action bar */
+.ol-btns{display:flex;gap:8px;flex-shrink:0}
+.ol-btns form{margin:0;display:inline-flex}
+
+/* Links table */
+.ol-table-wrap{overflow:auto;border:1px solid #eef0f2;border-radius:10px;background:#fff}
+.ol-table{width:100%;border-collapse:collapse;min-width:760px}
+.ol-table th,.ol-table td{padding:10px 12px;text-align:left;border-top:1px solid #f1f3f5;vertical-align:top}
+.ol-table thead th{background:#f9fafb;font-weight:700}
+.ol-url a{color:#2563eb;word-break:break-word}
+
+/* Chips / badges */
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:600}
+.badge-live{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.badge-dead{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+
+/* Grid alignment for header rows */
+.row-head{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.row-head .right{justify-self:end}
+
+/* Responsive */
+@media (max-width: 900px){
+  .ol-head{align-items:flex-start}
+  .row-head{grid-template-columns:1fr;gap:8px}
+  .ol-actions{width:100%}
+}
+@media (max-width: 640px){
+  .btn, .btn-outline, .btn-danger{height:40px;padding:0 12px}
+}
+
+/* Filter bar */
+.filter-bar{
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:20px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:16px;
+  align-items:flex-end
+}
+.filter-bar label{
+  font-size:13px;
+  font-weight:600;
+  color:#374151;
+  margin-bottom:4px;
+  display:block
+}
+.filter-bar select,.filter-bar input{
+  padding:8px;
+  border:1px solid #d1d5db;
+  border-radius:8px;
+  min-width:300px
+}
+.filter-bar button{
+  height:38px;
+  padding:0 14px;
+  border-radius:8px;
+  background:#111827;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+  font-weight:600
+}
+.filter-bar button:hover{opacity:.95}
+
+@media(max-width:768px){
+  .filter-bar{flex-direction:column;align-items:stretch}
+  .filter-bar select,.filter-bar input{width:100%}
+  .filter-bar button{width:100%}
+}
+
+
+</style>
+
+<div class="card ol-wrap">
+  <div class="ol-head">
+    <div>
+      <h2 class="ol-title">🛒 Offers & Networks (Admin)</h2>
+      <div class="ol-sub">Manage networks, offers, and the tracking links used in email templates.</div>
+    </div>
+    <div class="ol-actions">
+      
+      <a class="btn" href="{% url 'catalog:offer_network_add' %}">➕ Add Network</a>
+      
+      <a class="btn" href="{% url 'catalog:offer_link_add' %}">➕ Add Offer Link</a>
+    </div>
+    <div>
+  <form method="post" enctype="multipart/form-data" action="{% url 'catalog:upload_offer_links' %}" class="excel-upload-form">
+    {% csrf_token %}
+    <label for="excel_file" class="excel-label">
+      <span style="font-size:16px;vertical-align:middle;">📄</span> 
+      <span style="vertical-align:middle;">Upload Excel</span>
+    </label>
+    <input type="file" name="excel_file" id="excel_file" accept=".xlsx, .xls" class="excel-input" required>
+    <button type="submit" class="btn excel-btn">Upload</button>
+  </form>
+</div>
+
+   
+  </div>
+
+   <!-- Filter Bar -->
+  <form method="get" class="filter-bar">
+    <div>
+      <label for="network">Network</label>
+      <select name="network" id="network">
+        <option value="">All Networks</option>
+        {% for net in all_networks %}
+          <option value="{{ net.id }}" {% if request.GET.network == net.id|stringformat:"s" %}selected{% endif %}>
+            {{ net.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="offer">Offer</label>
+      <input type="text" id="offer" name="offer" value="{{ request.GET.offer }}" placeholder="Search offer name">
+    </div>
+    <div>
+      <label for="status">Status</label>
+      <select name="status" id="status">
+        <option value="">All</option>
+        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+      </select>
+    </div>
+    <div>
+      <button type="submit">Filter</button>
+    </div>
+  </form>
+
+  {% for network in networks %}
+    <div class="ol-card ol-network">
+      <div class="row-head">
+        <div class="ol-h3">🌐 {{ network.name }}</div>
+        <div class="ol-meta">{% if network.website %}<a href="{{ network.website }}" target="_blank">{{ network.website }}</a> · {% endif %}Created {{ network.created_at|date:"M d, Y" }}</div>
+        <div class="ol-btns right">
+          <a href="{% url 'catalog:offer_network_edit' network.pk %}" class="btn-outline">Edit</a>
+          <form method="get" action="{% url 'catalog:offer_network_delete' network.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+      
+
+     {% if network.filtered_offers %}
+  {% for offer in network.filtered_offers %}
+          <details class="ol-offer">
+            <summary>
+              <span>🏷️ {{ offer.name }}</span>
+              <span class="ol-btns">
+                <a href="{% url 'catalog:offer_edit' offer.pk %}" class="btn-outline">Edit</a>
+                <form method="get" action="{% url 'catalog:offer_delete' offer.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-danger">Delete</button>
+                </form>
+              </span>
+            </summary>
+
+            <div class="ol-offer-body">
+              <div class="ol-table-wrap">
+                <table class="ol-table">
+                  <thead>
+                    <tr>
+                      <th>URL</th>
+                      <th>Status</th>
+                      <th>Updated</th>
+                      <th style="width:1%"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                   {% with links=offer.filtered_links|default:offer.links %}
+  {% if links %}
+    
+      <tr>
+        <td>{{ links.url }}</td>
+                        <td>
+                          {% if links.is_active %}
+                            <span class="badge badge-live">Active</span>
+                          {% else %}
+                            <span class="badge badge-dead">Inactive</span>
+                          {% endif %}
+                        </td>
+                        <td>{{ links.updated_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                          <div class="ol-btns">
+                            <a href="{% url 'catalog:offer_link_edit' links.pk %}" class="btn-outline">Edit</a>
+                            <form method="get" action="{% url 'catalog:offer_link_delete' links.pk %}">
+                              {% csrf_token %}
+                              <button type="submit" class="btn-danger">Delete</button>
+                            </form>
+                          </div>
+                        </td>
+                    
+  {% else %}
+    <tr><td colspan="4" class="muted">No links yet.</td></tr>
+  {% endif %}
+{% endwith %}
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+       {% endfor %}
+{% else %}
+  <p class="muted" style="margin-top:8px;">No offers match your filter for this network.</p>
+{% endif %}
+    </div>
+  {% empty %}
+    <div class="ol-card">
+      <p class="muted">No networks yet. Use the buttons above to create your first Network, Offer, and Offer Link.</p>
+    </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

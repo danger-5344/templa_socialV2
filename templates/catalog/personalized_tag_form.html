@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width:720px;margin:auto;padding:18px">
+  <h2 style="margin:0 0 12px 0">{% if edit %}Edit{% else %}Add{% endif %} Personalized Tags</h2>
+  <p class="muted">Choose the platform and define the placeholders and footer snippets used when rendering templates for this platform.</p>
+
+  <form method="post" style="display:flex;flex-direction:column;gap:12px">
+    {% csrf_token %}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label style="display:block;font-weight:600;margin-bottom:6px">Platform</label>
+        {{form.platform}}
+        {% for e in form.platform.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
+      </div>
+      <div>
+        <label style="display:block;font-weight:600;margin-bottom:6px">Active</label>
+        {{ form.is_active }}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label style="display:block;font-weight:600;margin-bottom:6px">First name tag</label>
+        {{ form.first_name_tag }}
+        {% for e in form.first_name_tag.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
+      </div>
+      <div>
+        <label style="display:block;font-weight:600;margin-bottom:6px">Last name tag</label>
+        {{ form.last_name_tag }}
+        {% for e in form.last_name_tag.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div>
+        <label style="display:block;font-weight:600;margin-bottom:6px">Email tag</label>
+        {{ form.email_tag }}
+        {% for e in form.email_tag.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}</div>
+    <div>
+      <label style="display:block;font-weight:600;margin-bottom:6px">Date tag</label>
+      {{ form.date_tag }}
+      {% for e in form.date_tag.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
+    </div></div>
+      
+
+    <div>
+      <label style="display:block;font-weight:600;margin-bottom:6px">Footer 1 code</label>
+      {{ form.footer1_code }}
+      {% for e in form.footer1_code.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div>
+      <label style="display:block;font-weight:600;margin-bottom:6px">Footer 2 code</label>
+      {{ form.footer2_code }}
+      {% for e in form.footer2_code.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <a href="{% url 'catalog:personalized_tag_list' %}" class="btn-outline">Cancel</a>
+      <button type="submit" class="btn">{% if edit %}Save Changes{% else %}Create{% endif %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

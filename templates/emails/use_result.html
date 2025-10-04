@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  /* Container */
+  .preview-wrap {
+    max-width: 1200px;
+    margin: 20px auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 0 15px;
+  }
+
+  /* Grid for small cards */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  /* Card base */
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    padding: 20px;
+    transition: transform .15s ease, box-shadow .15s ease;
+    position: relative;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  }
+
+  /* Header */
+  .preview-header h2 {
+    margin: 0 0 10px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .preview-header h2 span {
+    color: #2563eb;
+  }
+  .meta-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 10px;
+  }
+  .meta-info p {
+    font-size: 14px;
+    color: #374151;
+    margin: 0;
+  }
+  .meta-info a {
+    color: #2563eb;
+    text-decoration: underline;
+    word-break: break-all;
+  }
+
+  /* Blocks */
+  .preview-block h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  /* Preview box */
+  .preview-box {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    font-family: monospace;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .scrollable {
+    max-height: 400px;
+    overflow: auto;
+  }
+
+  /* Copy Button */
+  .copy-btn {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .2s ease, transform .1s ease;
+    flex-shrink: 0;
+  }
+  .copy-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+  }
+  .copy-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* HTML editor-like */
+  pre.preview-box {
+    background: #1e1e2f;
+    color: #dcdcdc;
+    padding: 14px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 12px;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 640px) {
+    .preview-header h2, 
+    .preview-block h3 {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .copy-btn {
+      align-self: flex-end;
+      margin-top: 6px;
+    }
+  }
+</style>
+
+<div class="preview-wrap">
+
+  <!-- Header Card -->
+  <div class="card preview-header">
+    <h2>
+      📩 Preview: <span>{{ template.title }}</span>
+    </h2>
+    <h2>
+      🆔 Template ID: <span id="template-id">{{ template.template_id }}</span>
+      <button class="copy-btn" onclick="copyPlainText('template-id')">Copy</button>
+    </h2>
+    <div class="meta-info">
+      {% if platform %}<p><strong>Platform:</strong> {{ platform.name }}</p>{% endif %}
+      {% if offer_link %}<p><strong>Offer Link:</strong> <a href="{{ offer_link.url }}" target="_blank">{{ offer_link.url }}</a></p>{% endif %}
+      {% if cta_url %}<p><strong>CTA URL:</strong> <a href="{{ cta_url }}" target="_blank">{{ cta_url }}</a></p>{% endif %}
+    </div>
+  </div>
+
+  <!-- Two-column grid for Subject & From Line -->
+  <div class="grid-2">
+    <div class="card preview-block">
+      <h3>
+        📌 Subject Line
+        <button class="copy-btn" onclick="copyPlainText('subject-line')">Copy</button>
+      </h3>
+      <div class="preview-box" id="subject-line">{{ template.subject }}</div>
+    </div>
+
+    <div class="card preview-block">
+      <h3>
+        📌 From Name
+        <button class="copy-btn" onclick="copyPlainText('from-line')">Copy</button>
+      </h3>
+      <div class="preview-box" id="from-line">{{ template.from_name }}</div>
+    </div>
+  </div>
+
+  <!-- Full-width HTML Body -->
+  <div class="card preview-block">
+    <h3>
+      💻 HTML Body
+      <button class="copy-btn" onclick="copyToClipboard('html-code')">Copy HTML</button>
+    </h3>
+    <iframe
+      id="html-code"
+      class="preview-box scrollable"
+      style="width:100%; min-height:500px; border:none; background:#fff; border-radius:8px;"
+      sandbox="allow-same-origin"
+    ></iframe>
+    <details style="margin-top: 12px;">
+      <summary style="cursor:pointer; font-size: 14px; color: #2563eb; font-weight: 500;">Show HTML Source</summary>
+      <pre class="preview-box" style="margin-top:8px;">{{ filled_html|escape }}</pre>
+    </details>
+  </div>
+
+  <!-- Full-width Text Body -->
+  {% if filled_text %}
+  <div class="card preview-block">
+    <h3>
+      📝 Text Body
+      <button class="copy-btn" onclick="copyToClipboard('text-code')">Copy Text</button>
+    </h3>
+    <pre class="preview-box" id="text-code">{{ filled_text }}</pre>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+function copyPlainText(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Copied: ' + text);
+  }).catch(err => {
+    alert('Failed to copy: ' + err);
+  });
+}
+
+function copyToClipboard(id) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  if (id === 'html-code') {
+    const pre = el.parentElement.querySelector('pre.preview-box');
+    if (pre) {
+      navigator.clipboard.writeText(pre.textContent).then(() => {
+        alert('Copied template HTML to clipboard!');
+      }).catch(err => {
+        alert('Failed to copy: ' + err);
+      });
+      return;
+    }
+  }
+  let text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Copied to clipboard!');
+  }).catch(err => {
+    alert('Failed to copy: ' + err);
+  });
+}
+
+(function() {
+  var html = `{{ filled_html|escapejs }}`;
+  var iframe = document.getElementById('html-code');
+  if (iframe) {
+    iframe.onload = function() {
+      iframe.contentDocument.open();
+      iframe.contentDocument.write(html);
+      iframe.contentDocument.close();
+    };
+    if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+      iframe.contentDocument.open();
+      iframe.contentDocument.write(html);
+      iframe.contentDocument.close();
+    }
+  }
+})();
+</script>
+
+{% endblock %}

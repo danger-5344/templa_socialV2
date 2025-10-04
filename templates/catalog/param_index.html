@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    background: #f3f4f6;
+    color: #111827;
+  }
+
+  .param-wrap {
+    max-width: 800px;
+    margin: 30px auto;
+    background: #fff;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  }
+
+  .param-wrap h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #1f2937;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  select,
+  input,
+  textarea {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    width: 100%;
+    transition: border 0.2s, box-shadow 0.2s;
+  }
+
+  select:focus,
+  input:focus,
+  textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    outline: none;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #374151;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn, .btn-outline, .btn-danger {
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn { background: #2563eb; color: #fff; border: none; }
+  .btn:hover { background: #1e40af; }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    color: #374151;
+  }
+  .btn-outline:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+  }
+
+  .btn-danger { background: #dc2626; border: none; color: #fff; }
+  .btn-danger:hover { background: #b91c1c; }
+
+  .muted { color: #6b7280; font-size: 0.875rem; }
+
+  .example-box {
+    font-size: 13px;
+    color: #374151;
+    background: #f9fafb;
+    border: 1px dashed #d1d5db;
+    padding: 12px;
+    margin-top: 12px;
+    border-radius: 8px;
+  }
+
+  .example-box code {
+    background: #e5e7eb;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+</style>
+
+<div class="card param-wrap">
+  <h2>Tracking Parameters</h2>
+
+  <!-- Picker -->
+  <div style="margin-bottom:20px">
+    <label>Existing parameters</label>
+    <div class="form-row">
+      <select id="paramPicker">
+        <option value="">-- Select param to edit --</option>
+        {% for p in params %}
+          <option value="{{ p.pk }}">
+            {% if p.platform %}{{ p.platform.name }}{% else %}Param #{{ p.pk }}{% endif %}
+          </option>
+        {% endfor %}
+      </select>
+      <button type="button" id="loadBtn" class="btn-outline">Load</button>
+      <form id="deleteForm" method="post" style="display:inline">
+        {% csrf_token %}
+        <input type="hidden" name="dummy" />
+      </form>
+      <a href="{% url 'catalog:param_index' %}" id="clearBtn" class="btn-outline">Clear</a>
+    </div>
+    <div class="muted" style="margin-top:6px">
+      Pick an existing parameter and click <strong>Load</strong> to edit it.
+    </div>
+  </div>
+
+  <!-- Form -->
+  <form method="post" id="paramForm">
+    {% csrf_token %}
+    <input type="hidden" name="param_id" id="param_id" value="">
+
+    <div style="margin-top:20px">
+      <label>Platform</label>
+      {{ form.platform }}
+      {% for e in form.platform.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
+    </div>
+     <div>
+        <label style="display:block;font-weight:600;margin-bottom:6px">Active</label>
+        {{ form.is_active }}
+      </div>
+
+    <div style="margin-top:20px">
+      <label>Params (JSON)</label>
+      {{ form.params }}
+      {% if form.params.help_text %}<div class="muted">{{ form.params.help_text }}</div>{% endif %}
+      {% for e in form.params.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="example-box">
+      <strong>Example JSON:</strong> 
+      <code>{"utm_source":"newsletter","utm_medium":"email","utm_campaign":"fall"}</code>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn" type="submit">Save</button>
+      <button class="btn-outline" type="button" id="cancelEdit">Cancel Edit</button>
+      <button class="btn-danger" type="button" id="deleteBtn" style="display:none">Delete</button>
+    </div>
+  </form>
+</div>
+
+<script>
+const picker = document.getElementById('paramPicker');
+const loadBtn = document.getElementById('loadBtn');
+const paramIdField = document.getElementById('param_id');
+const deleteBtn = document.getElementById('deleteBtn');
+const cancelEdit = document.getElementById('cancelEdit');
+
+function setFormData(data) {
+  paramIdField.value = data.id || '';
+  const platformSelect = document.querySelector('#paramForm [name="platform"]');
+  if(platformSelect) platformSelect.value = data.platform || '';
+  
+  const paramsField = document.querySelector('#paramForm [name="params"]');
+  if(paramsField) {
+    try { paramsField.value = JSON.stringify(data.params || {}, null, 2); }
+    catch(e){ paramsField.value = ''; }
+  }
+
+  const activeField = document.querySelector('#paramForm [name="is_active"]');
+  if(activeField) activeField.checked = !!data.is_active;
+
+  if(data.id){
+    deleteBtn.style.display = '';
+    document.getElementById('deleteForm').action = "{% url 'catalog:param_delete' 0 %}".replace('/0/', '/' + data.id + '/');
+  } else {
+    deleteBtn.style.display = 'none';
+    document.getElementById('deleteForm').action = "";
+  }
+}
+
+function clearForm(){
+  paramIdField.value = '';
+  const platformSelect = document.querySelector('#paramForm [name="platform"]');
+  if(platformSelect) platformSelect.value = '';
+  const paramsField = document.querySelector('#paramForm [name="params"]');
+  if(paramsField) paramsField.value = '';
+  const activeField = document.querySelector('#paramForm [name="is_active"]');
+  if(activeField) activeField.checked = true;
+  deleteBtn.style.display = 'none';
+  picker.value = '';
+}
+
+loadBtn.addEventListener('click', function(){
+  const id = picker.value;
+  if(!id){ alert('Please select a parameter to load.'); return; }
+  const url = "{% url 'catalog:param_detail_json' 999999 %}".replace('999999', id);
+  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(r => { if(!r.ok) throw new Error('Failed to fetch'); return r.json(); })
+    .then(data => { setFormData(data); })
+    .catch(err => { console.error(err); alert('Failed to load parameter.'); });
+});
+
+cancelEdit.addEventListener('click', clearForm);
+
+deleteBtn.addEventListener('click', function(){
+  if(!confirm('Delete this parameter?')) return;
+  document.getElementById('deleteForm').submit();
+});
+</script>
+{% endblock %}

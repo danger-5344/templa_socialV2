@@ -1,0 +1,97 @@
+<div style="max-width:560px;">
+  <h2 style="margin:0 0 16px 0;">User Profile</h2>
+
+  <div style="display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:16px;">
+    {% if user_obj.profile and user_obj.profile.avatar %}
+      <img src="{{ user_obj.profile.avatar.url }}" alt="Avatar"
+           style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:4px solid #3b82f6;">
+    {% else %}
+      <div style="width:90px;height:90px;border-radius:50%;background:#111827;color:#fff;display:flex;align-items:center;justify-content:center;border:4px solid #3b82f6;font-size:28px;font-weight:700;">
+        {{ user_obj.username|slice:":1"|upper }}
+      </div>
+    {% endif %}
+    <div style="font-weight:700; font-size:18px;">
+      {% if user_obj.profile and user_obj.profile.display_name %}{{ user_obj.profile.display_name }}{% else %}{{ user_obj.get_full_name|default:user_obj.username }}{% endif %}
+    </div>
+    <div style="color:#6b7280">{{ user_obj.email }}</div>
+  </div>
+
+  <form id="profileForm"
+      method="post"
+      action="{% url 'accounts:profile_update' %}"
+      enctype="multipart/form-data"
+      onsubmit="return submitProfileForm(event)">
+  {% csrf_token %}
+  <input type="hidden" name="return_to" value="{{ return_to }}">
+    <label style="display:block; font-size:13px; color:#6b7280; margin:12px 0 6px;">Display Name</label>
+    <input type="text" name="display_name" value="{{ form.display_name.value|default_if_none:'' }}" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;">
+
+    <label style="display:block; font-size:13px; color:#6b7280; margin:12px 0 6px;">Email</label>
+    <input type="email" name="email" value="{{ form.email.value|default_if_none:'' }}" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;">
+
+    <label style="display:block; font-size:13px; color:#6b7280; margin:12px 0 6px;">Company</label>
+    <input type="text" name="company" value="{{ form.company.value|default_if_none:'' }}" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;">
+
+    <label style="display:block; font-size:13px; color:#6b7280; margin:12px 0 6px;">Avatar (optional)</label>
+    <input type="file" name="avatar" accept="image/*" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;">
+
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:16px;">
+      <button type="button" onclick="closeProfileModal()" style="background:#6b7280;color:#fff;border:none;border-radius:8px;padding:10px 14px;cursor:pointer;">Cancel</button>
+      <button type="submit" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:10px 14px;cursor:pointer;">Save Changes</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  function submitProfileForm(e){
+    e.preventDefault();
+    const form = document.getElementById('profileForm');
+    const url  = form.getAttribute('action');
+    const fd   = new FormData(form);
+
+    fetch(url, {
+      method: 'POST',
+      body: fd,
+      headers: {'X-Requested-With':'XMLHttpRequest'},
+      credentials: 'same-origin'
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.ok) {
+        alert('Please check the fields.');
+        console.error(data.errors);
+        return false;
+      }
+
+      // (optional) update footer UI quickly
+      try {
+        const nameEl = document.querySelector('.user-name');
+        const emailEl = document.querySelector('.user-email');
+        const avatarEl = document.querySelector('.avatar');
+        if (nameEl) nameEl.textContent = data.display_name || '';
+        if (emailEl) emailEl.textContent = data.email || '';
+        if (avatarEl && data.avatar_url) {
+          const img = document.createElement('img');
+          img.src = data.avatar_url;
+          img.alt = 'Avatar';
+          img.style = "width:36px;height:36px;border-radius:50%;object-fit:cover;";
+          avatarEl.replaceWith(img);
+        }
+      } catch(_) {}
+
+      // close modal and redirect back to the page that opened it
+      if (data.redirect) {
+        window.location.assign(data.redirect);
+      } else {
+        window.location.reload();
+      }
+      return false;
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Save failed.');
+    });
+
+    return false; // prevent navigation
+  }
+</script>

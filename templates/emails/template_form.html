@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+/* ===== Card Styling ===== */
+.form-card {
+  max-width: 850px;
+  margin: 40px auto;
+  padding: 30px;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #ffffff, #f3f4f6);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.form-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+}
+
+/* ===== Title ===== */
+.form-title {
+  margin-bottom: 25px;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  color: #111827;
+}
+.form-title span {
+  color: #2563eb;
+}
+
+/* ===== Form layout ===== */
+.template-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group label {
+  font-weight: 500;
+  color: #374151;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  background: #f9fafb;
+  transition: all 0.25s ease;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #2563eb;
+  background: #fff;
+  outline: none;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.2);
+}
+
+/* ===== Submit Button ===== */
+.form-actions {
+  text-align: right;
+}
+.primary-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.primary-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+.primary-btn:active {
+  transform: scale(0.97);
+}
+
+/* ===== Tips Section ===== */
+.tips {
+  margin-top: 25px;
+  font-size: 13px;
+  color: #374151;
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px dashed #d1d5db;
+}
+.tips h4 {
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: #2563eb;
+}
+.tips code {
+  display: inline-block;
+  margin: 4px 6px 4px 0;
+  padding: 4px 8px;
+  background: #eef2ff;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e40af;
+}
+
+/* Responsive tweaks */
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<div class="card form-card">
+  <h2 class="form-title">
+    {% if edit %}✏️ Edit Template{% else %}➕ Create Template{% endif %}
+  </h2>
+
+  <form method="post" enctype="multipart/form-data" class="template-form">
+    {% csrf_token %}
+    
+    <!-- Template Title -->
+    <div class="form-group">
+        {{ form.title.label_tag }}
+        {{ form.title }}
+    </div>
+
+    <!-- Subject & From Name -->
+    <div class="form-row">
+      <div class="form-group">
+        {{ form.subject.label_tag }}
+        {{ form.subject }}
+      </div>
+      <div class="form-group">
+        {{ form.from_name.label_tag }}
+        {{ form.from_name }}
+      </div>
+    </div>
+
+    <!-- Public / Snapshot -->
+    <div class="form-row">
+      <div class="form-group">
+        {{ form.is_public.label_tag }}
+        {{ form.is_public }}
+      </div>
+      <div class="form-group">
+        {{ form.snapshot.label_tag }}
+        {{ form.snapshot }}
+      </div>
+    </div>
+
+    <!-- Body HTML / Text -->
+    <div class="form-group">
+      {{ form.body_html.label_tag }}
+      {{ form.body_html }}
+    </div>
+    <div class="form-group">
+      {{ form.body_text.label_tag }}
+      {{ form.body_text }}
+    </div>
+
+    <!-- Submit Button -->
+    <div class="form-actions">
+      <button class="btn primary-btn">
+        {% if edit %}💾 Save{% else %}🚀 Create{% endif %}
+      </button>
+    </div>
+  </form>
+
+  <!-- Tips Section -->
+  <div class="tips">
+    <h4>💡 Available Tags for Your Template:</h4>
+    <code>{% verbatim %}{{ FIRST_NAME }}{% endverbatim %}</code>
+    <code>{% verbatim %}{{ LAST_NAME }}{% endverbatim %}</code>
+    <code>{% verbatim %}{{ EMAIL }}{% endverbatim %}</code>
+    <code>{% verbatim %}{{ DATE }}{% endverbatim %}</code>
+    <code>{% verbatim %}{{ FOOTER1 }}{% endverbatim %}</code>
+    <code>{% verbatim %}{{ FOOTER2 }}{% endverbatim %}</code>
+    <code>{% verbatim %}{{ CTA_URL }}{% endverbatim %}</code>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,636 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TemplaSocial</title>
+
+  <!-- Favicon (put files in /static) -->
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="alternate icon" type="image/png" href="/static/favicon.png">
+  <link rel="alternate icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+
+  <style>
+    :root {
+      --header-h: 56px;
+      --sidebar-w: 260px;
+      /* expanded width */
+      --sidebar-w-c: 64px;
+      /* collapsed width */
+      --bg: #f6f7f9;
+      --ink: #111827;
+      --muted: #6b7280;
+      --bd: #e5e7eb;
+      --brand: #111827;
+      --btn: #111827;
+      --btn-ink: #fff;
+      --btn-danger: #e74c3c;
+      --btn-danger-hover: #c0392b;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink)
+    }
+
+    a {
+      color: var(--ink);
+      text-decoration: none
+    }
+
+    /* Header (fixed) */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      height: var(--header-h);
+      background: var(--brand);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+    }
+
+    .brand a {
+      color: #fff;
+      font-weight: 700
+    }
+
+    .toggle {
+      width: 36px;
+      height: 36px;
+      border: 1px solid #ffffff33;
+      border-radius: 8px;
+      background: transparent;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer
+    }
+
+    /* Layout wrapper shifts content below header */
+    .layout {
+      padding-top: var(--header-h)
+    }
+
+    /* Sidebar (fixed) */
+    .sidebar {
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      bottom: 0;
+      width: var(--sidebar-w);
+      border-right: 1px solid var(--bd);
+      background: #fff;
+      z-index: 900;
+      display: flex;
+      flex-direction: column;
+      transition: width .2s ease;
+    }
+
+    .sidebar.collapsed {
+      width: var(--sidebar-w-c);
+    }
+
+    .side-scroll {
+      flex: 1;
+      overflow: auto;
+      padding: 12px
+    }
+
+    .side-group-title {
+      font-size: 12px;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin: 10px 0 6px;
+      transition: opacity .2s
+    }
+
+    .sidebar.collapsed .side-group-title {
+      opacity: 0;
+      height: 0;
+      overflow: hidden;
+      margin: 0
+    }
+
+    .side-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .side-link:hover {
+      background: #f3f4f6
+    }
+
+    .side-link .icon {
+      width: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .side-link .label {
+      transition: opacity .2s;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .sidebar.collapsed .side-link {
+      justify-content: center
+    }
+
+    .sidebar.collapsed .side-link .label {
+      opacity: 0;
+      width: 0;
+      max-width: 0;
+      margin: 0;
+      padding: 0
+    }
+
+    .side-footer {
+      border-top: 1px solid var(--bd);
+      padding: 12px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Sidebar collapsed footer cleanup */
+    .sidebar.collapsed .side-footer {
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar.collapsed .user-info {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .sidebar.collapsed .user-text {
+      display: none;
+    }
+
+    .sidebar.collapsed .user-actions {
+      flex-direction: column;
+    }
+
+    .sidebar.collapsed .side-footer {
+      justify-content: center
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden
+    }
+
+    .sidebar.collapsed .user-info .user-text {
+      display: none
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #111827;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex: 0 0 auto;
+    }
+
+    .user-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+      max-width: 140px
+    }
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden
+    }
+
+    .user-email {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden
+    }
+
+    /* Buttons */
+    .btn {
+      background: var(--btn);
+      color: var(--btn-ink);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer
+    }
+
+    .btn-outline {
+      background: #fff;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer
+    }
+
+    .btn-danger {
+      background: var(--btn-danger);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      display: block;
+      margin: auto;
+      /* horizontal center */
+    }
+
+    .btn-danger:hover {
+      background: var(--btn-danger-hover)
+    }
+
+    /* Main content area shifts based on sidebar state */
+    .content {
+      margin-left: var(--sidebar-w);
+      padding: 18px 12px;
+      min-height: calc(100vh - var(--header-h));
+      transition: margin-left .2s ease;
+    }
+
+    .content.collapsed {
+      margin-left: var(--sidebar-w-c);
+    }
+
+    /* Cards, tables, forms */
+    .card {
+      background: #fff;
+      border: 1px solid var(--bd);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px
+    }
+
+    .muted {
+      color: var(--muted)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #eee;
+      padding: 8px;
+      text-align: left
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--bd);
+      border-radius: 8px
+    }
+
+    form .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Mobile: slide-in with backdrop */
+    @media (max-width: 900px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform .2s ease, width .2s ease
+      }
+
+      .sidebar.open {
+        transform: translateX(0)
+      }
+
+      .content,
+      .content.collapsed {
+        margin-left: 0
+      }
+
+      .backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .45);
+        z-index: 800;
+        display: none
+      }
+
+      .backdrop.show {
+        display: block
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Fixed Header -->
+  <header>
+    <!-- One toggle works for both desktop collapse and mobile slide-in -->
+    <button class="toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+    <div class="brand"><a href="{% url 'emails:home' %}">TemplaSocial</a></div>
+  </header>
+
+  <!-- Mobile backdrop -->
+  <div id="backdrop" class="backdrop" onclick="toggleSidebar()"></div>
+
+  <div class="layout">
+    <!-- Fixed Sidebar -->
+    <aside id="sidebar" class="sidebar" data-collapsible>
+      <div class="side-scroll">
+        <div class="side-group">
+          <div class="side-group-title">BROWSE</div>
+          <a class="side-link" href="{% url 'emails:home' %}" title="Public Templates">
+            <span class="icon">📣</span><span class="label">Public Templates</span>
+          </a>
+          {% if user.is_authenticated %}
+          <a class="side-link" href="{% url 'emails:my_templates' %}" title="My Templates">
+            <span class="icon">🗂️</span><span class="label">My Templates</span>
+          </a>
+          {% endif %}
+        </div>
+
+        {% if user.is_authenticated %}
+        <div class="side-group" style="margin-top:14px">
+          <div class="side-group-title">CREATE</div>
+          <a class="side-link" href="{% url 'emails:template_create' %}" title="New Template">
+            <span class="icon">➕</span><span class="label">New Template</span>
+          </a>
+          <a class="side-link" href="{% url 'catalog:param_index' %}" title="Add Tracking Params">
+            <span class="icon">🏷️</span><span class="label">Add Tracking Params</span>
+          </a>
+          <a class="side-link" href="{% url 'catalog:personalized_tag_list' %}" title="Personalized tags">
+            <span class="icon">🏷️</span><span class="label">Add Personalized Tags</span>
+          </a>
+          <a class="side-link" href="{% url 'catalog:platform_list' %}" title="Add Platform">
+            <span class="icon">🧩</span><span class="label">Add Platform</span>
+          </a>
+            
+          {% if user.is_staff %}
+          <a class="side-link" href="{% url 'catalog:offer_index' %}" title="Offers (Admin)">
+            <span class="icon">🛒</span><span class="label">Offers (Admin)</span>
+          </a>
+          {% endif %}
+        </div>
+        {% else %}
+        <div class="side-group" style="margin-top:14px">
+          <div class="side-group-title">ACCOUNT</div>
+          <a class="side-link" href="{% url 'accounts:login' %}" title="Login">
+            <span class="icon">🔐</span><span class="label">Login</span>
+          </a>
+          <a class="side-link" href="{% url 'accounts:signup' %}" title="Sign up">
+            <span class="icon">✨</span><span class="label">Sign up</span>
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Sidebar footer with user panel -->
+      {% if user.is_authenticated %}
+      <div class="side-footer">
+        <div class="user-info" title="{{ user.username }}">
+          <a href="#" onclick="openProfileModal(event)" style="text-decoration: none;">
+            {% if user.profile and user.profile.avatar %}
+            <img src="{{ user.profile.avatar.url }}" alt="Avatar"
+              style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+            {% else %}
+            <div class="avatar">{{ user.username|slice:":1"|upper }}</div>
+            {% endif %}
+          </a><a href="" onclick="openProfileModal(event)" style="text-decoration: none;">
+            <div class="user-text">
+              <div class="user-name">
+                {% if user.profile and user.profile.display_name %}
+    {{ user.profile.display_name }}
+  {% else %}
+    {{ user.get_full_name|default:user.username }}
+  {% endif %}
+              </div>
+              <div class="user-email">{{ user.email }}</div>
+            </div>
+          </a>
+        </div>
+
+        <div class="user-actions" style="display:flex; gap:8px; align-items:center;">
+          <!-- Profile Button -->
+          <a href="" title="Profile" onclick="openProfileModal(event)" style="display:flex; align-items:center; justify-content:center;
+              width:40px; height:34px; border:1px solid #111827;
+              border-radius:8px; background:#fff; color:#111827;
+              font-size:14px; text-decoration:none; cursor:pointer;">
+            👤
+          </a>
+
+          <!-- Logout Button -->
+          <form method="post" action="{% url 'accounts:logout' %}" title="Logout" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" style="display:flex; align-items:center; justify-content:center;
+               width:40px; height:34px; border:none; border-radius:8px;
+               background:#e74c3c; cursor:pointer;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="20" height="20" fill="#fff"
+                style="flex-shrink:0;">
+                <path
+                  d="M21,48.5v-3c0-0.8-0.7-1.5-1.5-1.5h-10C8.7,44,8,43.3,8,42.5v-33C8,8.7,8.7,8,9.5,8h10
+            C20.3,8,21,7.3,21,6.5v-3C21,2.7,20.3,2,19.5,2H6C3.8,2,2,3.8,2,6v40c0,2.2,1.8,4,4,4h13.5C20.3,50,21,49.3,21,48.5z" />
+                <path d="M49.6,27c0.6-0.6,0.6-1.5,0-2.1L36.1,11.4c-0.6-0.6-1.5-0.6-2.1,0l-2.1,2.1c-0.6,0.6-0.6,1.5,0,2.1l5.6,5.6
+            c0.6,0.6,0.2,1.7-0.7,1.7H15.5c-0.8,0-1.5,0.6-1.5,1.4v3c0,0.8,0.7,1.6,1.5,1.6h21.2c0.9,0,1.3,1.1,0.7,1.7l-5.6,5.6
+            c-0.6,0.6-0.6,1.5,0,2.1l2.1,2.1c0.6,0.6,1.5,0.6,2.1,0L49.6,27z" />
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+    </aside>
+
+<!-- Main Content -->
+<main id="content" class="content" style="padding:20px;">
+
+  <style>
+    /* Flash messages */
+    .flashes{margin:0 0 16px 0;display:flex;flex-direction:column;gap:10px}
+    .flash{border:1px solid;border-radius:10px;padding:12px 14px;font-weight:500;font-size:14px}
+    .flash-success{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
+    .flash-error{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+    .flash-warning{background:#fffbeb;color:#92400e;border-color:#fde68a}
+    .flash-info{background:#eff6ff;color:#1e40af;border-color:#bfdbfe}
+
+    /* Content wrapper card */
+    .content-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  </style>
+
+  {% if messages %}
+    <div class="flashes">
+      {% for m in messages %}
+        <div class="flash
+          {% if 'success' in m.tags %} flash-success
+          {% elif 'error' in m.tags %} flash-error
+          {% elif 'warning' in m.tags %} flash-warning
+          {% else %} flash-info
+          {% endif %}">
+          {{ m }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="content-card">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+  </div>
+  <!-- Generic modal shell -->
+  <!-- PROFILE MODAL (shell) -->
+  <div id="profileModalBackdrop" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5);
+            z-index:2000; align-items:center; justify-content:center; padding:16px;">
+    <div id="profileModalCard" style="max-width:640px; width:100%; background:#fff; border-radius:14px; border:1px solid #e5e7eb;
+              box-shadow:0 10px 30px rgba(0,0,0,.12); position:relative; padding:20px;"
+      onclick="event.stopPropagation()"><!-- stop clicks from hitting backdrop -->
+      <button type="button" onclick="closeProfileModal()" aria-label="Close" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border:none;
+                   border-radius:8px; background:#111827; color:#fff; cursor:pointer;">✕</button>
+      <div id="profileModalContent">Loading…</div>
+    </div>
+  </div>
+
+
+  <script>
+    // Desktop collapse + Mobile slide-in with one toggle
+    function isMobile() {
+      return window.matchMedia('(max-width: 900px)').matches;
+    }
+
+    function applyCollapsedState(collapsed) {
+      const sidebar = document.getElementById('sidebar');
+      const content = document.getElementById('content');
+      if (collapsed) {
+        sidebar.classList.add('collapsed');
+        content.classList.add('collapsed');
+      } else {
+        sidebar.classList.remove('collapsed');
+        content.classList.remove('collapsed');
+      }
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const backdrop = document.getElementById('backdrop');
+
+      if (isMobile()) {
+        // Mobile: slide in/out
+        sidebar.classList.toggle('open');
+        backdrop.classList.toggle('show');
+      } else {
+        // Desktop: collapse/expand
+        const collapsed = !sidebar.classList.contains('collapsed');
+        applyCollapsedState(collapsed);
+        localStorage.setItem('ts_sidebar_collapsed', collapsed ? '1' : '0');
+      }
+    }
+
+    // Initialize desktop collapsed state from localStorage
+    (function () {
+      const collapsed = localStorage.getItem('ts_sidebar_collapsed') === '1';
+      if (!isMobile()) {
+        applyCollapsedState(collapsed);
+      }
+      // Close mobile sidebar when resizing up
+      window.addEventListener('resize', () => {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('backdrop');
+        if (!isMobile()) {
+          backdrop.classList.remove('show');
+          sidebar.classList.remove('open');
+          // Re-apply desktop persisted state
+          applyCollapsedState(localStorage.getItem('ts_sidebar_collapsed') === '1');
+        } else {
+          // On mobile, no collapsed styling
+          applyCollapsedState(false);
+        }
+      });
+    })();
+
+    // Close mobile sidebar with ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const s = document.getElementById('sidebar');
+        const b = document.getElementById('backdrop');
+        if (s.classList.contains('open')) { s.classList.remove('open'); b.classList.remove('show'); }
+      }
+    });
+
+    function openProfileModal(e) {
+      if (e) e.preventDefault();
+      const returnTo = window.location.href;
+      const url = "{% url 'accounts:profile_modal' %}" + "?return_to=" + encodeURIComponent(returnTo);
+
+      const backdrop = document.getElementById('profileModalBackdrop');
+      const content = document.getElementById('profileModalContent');
+      backdrop.style.display = 'flex';
+      content.innerHTML = 'Loading…';
+
+      fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.text())
+        .then(html => { content.innerHTML = html; })
+        .catch(() => { content.innerHTML = '<div class="card">Failed to load.</div>'; });
+    }
+    function closeProfileModal() {
+      const backdrop = document.getElementById('profileModalBackdrop');
+      const content = document.getElementById('profileModalContent');
+      if (content) content.innerHTML = '';
+      if (backdrop) backdrop.style.display = 'none';
+    }
+
+    // Close when clicking the dim backdrop or pressing ESC
+    document.getElementById('profileModalBackdrop').addEventListener('click', function (e) {
+      if (e.target.id === 'profileModalBackdrop') closeProfileModal();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeProfileModal();
+    });
+  </script>
+
+</body>
+
+</html>

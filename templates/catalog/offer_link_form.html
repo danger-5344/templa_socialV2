@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+  <h2>Add Offer & Link</h2>
+  <form method="post">{% csrf_token %}
+    <div style="display:grid;gap:12px;max-width:600px">
+      {% for field in form %}
+        {{ field.label_tag }} {{ field }}
+        {% if field.help_text %}
+          <small style="color:#6b7280; display:block; margin-top:4px;">{{ field.help_text }}</small>
+        {% endif %}
+        {% for error in field.errors %}
+          <div style="color:#b91c1c; font-size:13px; margin-top:4px;">{{ error }}</div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+    <button class="btn" style="margin-top:14px">Save</button>
+  </form>
+</div>
+{% endblock %}

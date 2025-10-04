@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width:650px; margin:auto;">
+  <h2 style="margin:0 0 16px 0; font-size:22px; font-weight:700; color:#111827;">
+    🏷️ Add Tracking Parameters
+  </h2>
+  <p style="color:#6b7280; margin-bottom:20px;">
+    Define tracking parameters that can be appended to links in your email templates.
+  </p>
+
+  <form method="post" style="display:flex; flex-direction:column; gap:18px;">
+    {% csrf_token %}
+    
+    {% for field in form %}
+      <div>
+        <label style="display:block; font-size:14px; font-weight:600; margin-bottom:6px; color:#374151;">
+          {{ field.label }}
+        </label>
+        {{ field }}
+        {% if field.help_text %}
+          <small style="color:#6b7280; display:block; margin-top:4px;">{{ field.help_text }}</small>
+        {% endif %}
+        {% for error in field.errors %}
+          <div style="color:#b91c1c; font-size:13px; margin-top:4px;">{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+    <div style="font-size:13px; color:#6b7280; background:#f9fafb; border:1px dashed #d1d5db; padding:12px; overflow:hidden; border-radius:8px;">
+      <strong>Example JSON:</strong> 
+      <code>{"utm_source":"newsletter","utm_medium":"email","utm_campaign":"fall"}</code>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px;">
+      <a href="{% url 'emails:home' %}" 
+         style="background:#fff; border:1px solid #d1d5db; border-radius:8px; padding:10px 16px; text-decoration:none; color:#374151; font-weight:500;">
+         Cancel
+      </a>
+      <button type="submit" 
+              style="background:#111827; color:#fff; border:none; border-radius:8px; padding:10px 16px; cursor:pointer; font-weight:600;">
+        💾 Save Parameters
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

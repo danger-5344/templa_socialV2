@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+/* ===== Card ===== */
+.form-card {
+  max-width: 850px;
+  margin: 40px auto;
+  padding: 30px;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #ffffff, #f3f4f6);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.form-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+}
+
+/* ===== Title ===== */
+.form-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #111827;
+}
+.form-title span {
+  color: #2563eb;
+}
+
+/* ===== Detected Fields ===== */
+.detected-fields {
+  font-size: 14px;
+  margin-bottom: 25px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px dashed #d1d5db;
+  background: #fefeff;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.detected-fields code {
+  background: #eef2ff;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2563eb;
+}
+.detected-fields .none {
+  color: #9ca3af;
+}
+
+/* ===== Form Layout ===== */
+.use-template-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group label {
+  font-weight: 500;
+  font-size: 14px;
+  color: #374151;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  background: #f9fafb;
+  transition: all 0.25s ease;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #2563eb;
+  background: #fff;
+  outline: none;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.2);
+}
+
+/* ===== Actions ===== */
+.form-actions {
+  text-align: right;
+  margin-top: 10px;
+}
+.primary-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.primary-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+.primary-btn:active {
+  transform: scale(0.97);
+}
+
+/* ===== Responsive tweaks ===== */
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<div class="card form-card">
+  <h2 class="form-title">⚡ Use Template: <span>{{ template.title }}</span></h2>
+  
+  <!-- Detected Fields -->
+  <p class="muted detected-fields">
+    🔍 Detected fields:
+    {% for f in detected %}
+      <code>{{ f }}</code>
+    {% empty %}
+      <span class="none">None</span>
+    {% endfor %}
+  </p>
+
+  <form method="post" class="use-template-form">
+    {% csrf_token %}
+    
+    <!-- Platform -->
+    <div class="form-group">
+      {{ form.platform.label_tag }}
+      {{ form.platform }}
+    </div>
+
+    <!-- Tracking + Offer -->
+    <div class="form-row">
+      <div class="form-group">
+        {{ form.offer_link.label_tag }}
+        {{ form.offer_link }}
+      </div>
+    </div>
+
+    <!-- CTA + Fallback -->
+    <div class="form-row">
+      <div class="form-group">
+        {{ form.cta_fallback_url.label_tag }}
+        {{ form.cta_fallback_url }}
+      </div>
+    </div>
+
+    <hr />
+
+    <!-- Submit -->
+    <div class="form-actions">
+      <button class="btn primary-btn">🚀 Generate</button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

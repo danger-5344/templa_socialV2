@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+/* --- Container --- */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 10px;
+  font-family: 'Inter', sans-serif;
+  color: #111827;
+}
+
+/* --- Search Bar --- */
+.search-card {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+.search-form {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+}
+.search-form input {
+  flex: 12;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(6px);
+  font-size: 15px;
+  transition: all .3s ease;
+
+}
+.search-form input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 8px 25px rgba(59,130,246,0.25);
+  outline: none;
+}
+.search-form .btn {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 14px;
+  padding: 14px 22px;
+  transition: all .2s ease;
+  border: none;
+  cursor: pointer;
+}
+.search-form .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(37,99,235,0.3);
+}
+
+/* --- Templates Grid --- */
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 28px;
+}
+
+/* --- Template Card --- */
+.template-card {
+  position: relative;
+  background: rgba(255,255,255,0.85);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all .3s ease;
+  border: 1px solid rgba(200,200,200,0.3);
+  backdrop-filter: blur(8px);
+}
+.template-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+}
+
+/* --- Ribbon Badge --- */
+.ribbon {
+  width: 90px;
+  height: 30px;
+  background: #28a745;
+  color: white;
+  text-align: center;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 30px;
+  position: absolute;
+  top: 7px;
+  right: -26px;
+  transform: rotate(45deg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* --- Snapshot --- */
+.snapshot img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+.no-snapshot {
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 14px;
+  border-bottom: 1px dashed #ddd;
+}
+
+/* --- Info Section --- */
+.info {
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.info h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: #111827;
+}
+.muted {
+  font-size: 13px;
+  color: #6b7280;
+}
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* --- Buttons --- */
+.btn {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid #2563eb;
+  color: #2563eb;
+}
+.btn-outline:hover {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(37,99,235,0.25);
+}
+
+/* --- Modal --- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+.modal-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.modal-dialog {
+  background: #fff;
+  border-radius: 18px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.close-btn:hover {
+  background: #e5e7eb;
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .actions {
+    flex-direction: column;
+  }
+  .btn, .btn-outline {
+    width: 100%;
+  }
+  .templates-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<div class="container">
+
+  <!-- Search Card -->
+  <div class="search-card">
+    <form method="get" class="search-form">
+      <input type="text" name="q" value="{{q}}" placeholder="Search public templates">
+      <button class="btn">Search</button>
+    </form>
+  </div>
+
+  <!-- Templates Grid -->
+  <div class="templates-grid">
+    {% for t in templates %}
+    <div class="template-card">
+      {% if t.id in used_template_ids %}
+        <div class="ribbon">Used</div>
+      {% endif %}
+      <div class="snapshot">
+        {% if t.snapshot %}
+          <img src="{{ t.snapshot.url }}" alt="{{ t.title }}">
+        {% else %}
+          <div class="no-snapshot">No snapshot</div>
+        {% endif %}
+      </div>
+      <div class="info">
+        <h3>{{ t.title }}</h3>
+        <p class="muted">by {{ t.owner.username }}{% if t.platform %} · Platform: {{ t.platform.name }}{% endif %}</p>
+        <p class="muted">Updated at: {{ t.updated_at|date:"M d, Y H:i" }}</p>
+        <div class="actions">
+          <a href="{% url 'emails:template_use' t.pk %}" class="btn" style="text-align: center;">Use Template</a>
+          <button type="button" class="btn-outline" data-preview-url="{% url 'emails:template_preview' t.pk %}" onclick="openPreview(event, this)">Preview</button>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+      <div class="card" style="text-align:center; padding:40px;">No public templates yet.</div>
+    {% endfor %}
+  </div>
+
+  <!-- Preview Modal -->
+  <div id="previewModal" class="modal-backdrop">
+    <div role="dialog" aria-modal="true" class="modal-dialog">
+      <button onclick="closePreview()" aria-label="Close" class="close-btn">✕</button>
+      <div id="previewContent">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openPreview(e, btn) {
+  if (e) e.preventDefault();
+  const url = btn.getAttribute('data-preview-url');
+  const modal = document.getElementById('previewModal');
+  const content = document.getElementById('previewContent');
+  modal.classList.add('active');
+  content.innerHTML = 'Loading…';
+  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    .then(html => { content.innerHTML = html; })
+    .catch(() => { content.innerHTML = '<div class="card">Failed to load preview.</div>'; });
+}
+
+function closePreview() {
+  document.getElementById('previewModal').classList.remove('active');
+}
+
+document.addEventListener('keydown', (e) => { if(e.key==='Escape') closePreview(); });
+document.getElementById('previewModal')?.addEventListener('click', (e)=>{ if(e.target.id==='previewModal') closePreview(); });
+</script>
+
+{% endblock %}

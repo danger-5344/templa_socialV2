@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width:900px;margin:auto">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h2 style="margin:0">My Platforms</h2>
+    <div style="display:flex;gap:8px">
+      <a class="btn" href="{% url 'catalog:platform_add' %}">➕ Add Platform</a>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
+    {% for platform in platforms %}
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
+        <div>
+          <div style="font-weight:700">{{ platform.name }}</div>
+          <div class="muted" style="font-size:13px">Slug: {{ platform.slug }}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <a class="btn-outline" href="{% url 'catalog:platform_edit' platform.pk %}">Edit</a>
+          <form method="get" action="{% url 'catalog:platform_delete' platform.pk %}" style="margin:0">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+    {% empty %}
+      <div class="card">No platforms added yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

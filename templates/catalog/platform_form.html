@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width:720px;margin:auto;padding:18px">
+  <h2 style="margin:0 0 12px 0">{% if edit %}Edit{% else %}Add{% endif %} Platform</h2>
+  <p class="muted">Define a platform name. The slug will be automatically generated.</p>
+
+  <form method="post" style="display:flex;flex-direction:column;gap:12px">
+    {% csrf_token %}
+
+    <div>
+      <label style="display:block;font-weight:600;margin-bottom:6px">Platform Name</label>
+      {{ form.name }}
+      {% for e in form.name.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
+    </div>
+
+    {% if form.slug %}
+    <div>
+      <label style="display:block;font-weight:600;margin-bottom:6px">Slug (auto-generated)</label>
+      {{ form.slug }}
+      {% for e in form.slug.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <a href="{% url 'catalog:platform_list' %}" class="btn-outline">Cancel</a>
+      <button type="submit" class="btn">{% if edit %}Save Changes{% else %}Create{% endif %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

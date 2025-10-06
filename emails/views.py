@@ -9,6 +9,7 @@ from .forms import EmailTemplateForm, UseTemplateForm
 from .utils import detect_placeholders, fill_placeholders, append_query_params
 from catalog.models import PersonalizedTag, Platform, TrackingParamSet, OfferLink
 from django import forms
+from django.core.cache import cache
 
 def home(request):
     q = request.GET.get("q", "")
@@ -129,7 +130,6 @@ def template_use(request, pk):
             platform = cleaned.pop("platform", None)
             offer_link = cleaned.pop("offer_link", None)
             cta_fallback_url = cleaned.pop("cta_fallback_url", "")
-            print(platform, offer_link, cta_fallback_url)
 
            
             try:

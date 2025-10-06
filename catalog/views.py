@@ -88,7 +88,19 @@ def upload_offer_links(request):
         excel_file = request.FILES["excel_file"]
 
         try:
+            import pandas as pd
+
             df = pd.read_excel(excel_file)
+            df = df.dropna(subset=['network', 'offer', 'url'])
+
+            # Fetch existing items
+            existing_networks = {n.name: n for n in OfferNetwork.objects.all()}
+            existing_offers = {(o.network.name, o.name): o for o in Offer.objects.select_related('network')}
+            existing_links = {(l.offer.network.name, l.offer.name): l for l in OfferLink.objects.select_related('offer__network')}
+
+            new_networks = []
+            new_offers = []
+            new_links = []
 
             created_networks = 0
             created_offers = 0
@@ -96,38 +108,81 @@ def upload_offer_links(request):
             updated_links = 0
             skipped_rows = 0
 
+            # 1️⃣ Create in-memory lists
             for _, row in df.iterrows():
-                network_name = row.get('network')
-                offer_name = row.get('offer')
-                url = row.get('url')
-                is_active = bool(row.get('is_active'))
+                network_name = str(row['network']).strip()
+                offer_name = str(row['offer']).strip()
+                url = str(row['url']).strip()
+                is_active = bool(row.get('is_active', True))
 
                 if not all([network_name, offer_name, url]):
                     skipped_rows += 1
                     continue
 
-                network_obj, network_created = OfferNetwork.objects.get_or_create(name=network_name)
-                if network_created:
-                    created_networks += 1
+                # --- NETWORK ---
+                network_obj = existing_networks.get(network_name)
+                if not network_obj:
+                    network_obj = OfferNetwork(name=network_name)
+                    new_networks.append(network_obj)
+                    existing_networks[network_name] = network_obj
 
-                offer_obj, offer_created = Offer.objects.get_or_create(network=network_obj, name=offer_name)
-                if offer_created:
-                    created_offers += 1
+                # --- OFFER ---
+                offer_key = (network_name, offer_name)
+                offer_obj = existing_offers.get(offer_key)
+                if not offer_obj:
+                    offer_obj = Offer(network=network_obj, name=offer_name)
+                    new_offers.append(offer_obj)
+                    existing_offers[offer_key] = offer_obj
 
-                offer_link, link_created = OfferLink.objects.get_or_create(
-                    offer=offer_obj,
-                    defaults={'url': url, 'is_active': is_active, 'created_by': request.user}
-                )
+                # --- LINK ---
+                link_key = (network_name, offer_name)
+                link_obj = existing_links.get(link_key)
 
-                if link_created:
-                    created_links += 1
+                if link_obj:
+                    if link_obj.url != url or link_obj.is_active != is_active:
+                        link_obj.url = url
+                        link_obj.is_active = is_active
+                        link_obj.save(update_fields=['url', 'is_active'])
+                        updated_links += 1
                 else:
-                    offer_link.url = url
-                    offer_link.is_active = is_active
-                    offer_link.save(update_fields=['url', 'is_active'])
-                    updated_links += 1
+                    link_obj = OfferLink(offer=offer_obj, url=url, is_active=is_active, created_by=request.user)
+                    new_links.append(link_obj)
+                    existing_links[link_key] = link_obj
 
-            messages.success(request, f"Excel processed! "
+            # 2️⃣ Save new networks first
+            if new_networks:
+                OfferNetwork.objects.bulk_create(new_networks, ignore_conflicts=True)
+                created_networks = len(new_networks)
+
+                # refresh from DB (to get IDs)
+                saved_networks = OfferNetwork.objects.filter(
+                    name__in=[n.name for n in new_networks]
+                )
+                for n in saved_networks:
+                    existing_networks[n.name] = n
+
+            # 3️⃣ Save new offers next
+            if new_offers:
+                for o in new_offers:
+                    o.network = existing_networks[o.network.name]  # now has ID
+                Offer.objects.bulk_create(new_offers, ignore_conflicts=True)
+                created_offers = len(new_offers)
+
+                # refresh offers with IDs
+                saved_offers = Offer.objects.select_related('network').filter(
+                    name__in=[o.name for o in new_offers]
+                )
+                for o in saved_offers:
+                    existing_offers[(o.network.name, o.name)] = o
+
+            # 4️⃣ Finally, save new links
+            if new_links:
+                for l in new_links:
+                    l.offer = existing_offers[(l.offer.network.name, l.offer.name)]
+                OfferLink.objects.bulk_create(new_links, ignore_conflicts=True)
+                created_links = len(new_links)
+
+            messages.success(request, f"✅ Excel processed successfully! "
                                       f"{created_networks} networks, "
                                       f"{created_offers} offers, "
                                       f"{created_links} new links, "
@@ -135,75 +190,66 @@ def upload_offer_links(request):
                                       f"{skipped_rows} skipped.")
 
         except Exception as e:
-            messages.error(request, f"Error processing Excel: {e}")
+            messages.error(request, f"❌ Error processing Excel: {e}")
 
-        # Redirect to offer_index after success or failure
-        return redirect('catalog:offer_index')  # replace with your URL name
+        return redirect('catalog:offer_index')
 
-    # If GET request, just render the upload page
     return render(request, "catalog/offer_index.html", {
         "all_networks": OfferNetwork.objects.all()
     })
 
+from django.db.models import Q, Prefetch
 
 @login_required
 @user_passes_test(staff_only)
 def offer_index(request):
-    all_networks = Network.objects.order_by("name")
-
-    net_id  = request.GET.get("network") or ""
+    net_id = request.GET.get("network") or ""
     offer_q = request.GET.get("offer") or ""
-    status  = request.GET.get("status") or ""  # "", "active", "inactive"
+    status = request.GET.get("status") or ""  # "", "active", "inactive"
 
-    # 1) Filter links by status (used in both offer prefetch & table rows)
-    links_qs = OfferLink.objects.select_related("offer").all()
+    # Base link filter
+    link_filter = Q()
     if status == "active":
-        links_qs = links_qs.filter(is_active=True)
+        link_filter = Q(is_active=True)
     elif status == "inactive":
-        links_qs = links_qs.filter(is_active=False)
+        link_filter = Q(is_active=False)
 
-    # 2) Start from all offers, filter by name if provided
-    offers_qs = Offer.objects.all()
+    # Prefetch links with filter
+    prefetch_links = Prefetch(
+        'links',
+        queryset=OfferLink.objects.filter(link_filter).select_related('offer'),
+        to_attr='filtered_links'
+    )
+
+    # Base offer filter
+    offers_qs = Offer.objects.all().select_related('network').prefetch_related(prefetch_links)
     if offer_q:
         offers_qs = offers_qs.filter(name__icontains=offer_q)
 
-    # 3) If status is set, keep only offers that have at least one link matching that status
-    if status in ("active", "inactive"):
-        offers_qs = offers_qs.filter(links__in=links_qs).distinct()
+    # Only keep offers that have links if status filter is applied
+    if status in ('active', 'inactive'):
+        offers_qs = offers_qs.filter(links__is_active=(status == 'active'))
 
-    # 4) Prefetch only the links we want to render in the table
-    #    - when status is set, prefetch filtered links
-    #    - when no status, prefetch all links so tables show everything
-    offers_qs = offers_qs.prefetch_related(
-        Prefetch(
-            "links",
-            queryset=links_qs if status in ("active", "inactive") else OfferLink.objects.select_related("offer").all(),
-            to_attr="filtered_links",
-        )
+    # Prefetch offers per network
+    networks_qs = OfferNetwork.objects.all().prefetch_related(
+        Prefetch('offers', queryset=offers_qs, to_attr='filtered_offers')
     )
 
-    # 5) Base networks + optional single-network filter
-    networks_qs = Network.objects.all()
+    # Optional network filter
     if net_id:
         networks_qs = networks_qs.filter(id=net_id)
 
-    # 6) If offer or status filters are applied, keep only networks that actually have matched offers
-    if offer_q or status in ("active", "inactive"):
-        networks_qs = networks_qs.filter(offers__in=offers_qs).distinct()
+    # If filters applied, remove networks with no filtered offers
+    networks_qs = [net for net in networks_qs if getattr(net, 'filtered_offers', [])]
 
-    # 7) Attach only the (possibly filtered) offers to each network
-    networks_qs = networks_qs.prefetch_related(
-        Prefetch("offers", queryset=offers_qs, to_attr="filtered_offers")
-    )
+    # Order networks
+    networks_qs.sort(key=lambda x: x.name)
 
-    return render(
-        request,
-        "catalog/offer_index.html",
-        {
-            "networks": networks_qs,
-            "all_networks": all_networks,
-        },
-    )
+    return render(request, "catalog/offer_index.html", {
+        "networks": networks_qs,
+        "all_networks": OfferNetwork.objects.order_by('name'),
+    })
+
 class OfferLinkForm(forms.ModelForm):
     class Meta:
         model = OfferLink

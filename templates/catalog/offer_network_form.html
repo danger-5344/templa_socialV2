@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="card" style="max-width:650px; margin:auto;">
-  <h2 style="margin:0 0 16px 0; font-size:22px; font-weight:700; color:#111827;">
+
+<div class="max-w-2xl mx-auto bg-[#f6f7f9] border border-[#e5e7eb] rounded-2xl shadow-sm p-8 mt-10 mb-10">
+  <h2 class="text-2xl font-bold text-[#111827] mb-3 flex items-center gap-2">
     🌐 {% if edit %}Edit Network{% else %}Add New Network{% endif %}
   </h2>
-  <p style="color:#6b7280; margin-bottom:20px;">
+
+  <p class="text-[#6b7280] mb-6">
     {% if edit %}
       Update the details of this network.
     {% else %}
@@ -12,36 +14,49 @@
     {% endif %}
   </p>
 
-  <form method="post" style="display:flex; flex-direction:column; gap:18px;">
+  <form method="post" class="flex flex-col gap-6">
     {% csrf_token %}
 
     {% for field in form %}
-      <div>
-        <label style="display:block; font-size:14px; font-weight:600; margin-bottom:6px; color:#374151;">
+      <div class="flex flex-col">
+        <label class="text-sm font-semibold text-[#111827] mb-2">
           {{ field.label }}
         </label>
         {{ field }}
         {% if field.help_text %}
-          <small style="color:#6b7280; display:block; margin-top:4px;">{{ field.help_text }}</small>
+          <small class="text-xs text-[#6b7280] mt-1">{{ field.help_text }}</small>
         {% endif %}
         {% for error in field.errors %}
-          <div style="color:#b91c1c; font-size:13px; margin-top:4px;">{{ error }}</div>
+          <div class="text-[#e74c3c] text-sm mt-1">{{ error }}</div>
         {% endfor %}
       </div>
     {% endfor %}
 
-    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px;">
+    <div class="flex justify-end gap-3 mt-4">
       <a href="{% url 'catalog:offer_index' %}" 
-         style="background:#fff; border:1px solid #d1d5db; border-radius:8px; padding:10px 16px; 
-                text-decoration:none; color:#374151; font-weight:500;">
+         class="bg-[#fff] border border-[#e5e7eb] text-[#111827] px-5 py-2.5 rounded-lg font-medium text-sm hover:bg-[#f6f7f9] transition">
         Cancel
       </a>
       <button type="submit" 
-              style="background:#111827; color:#fff; border:none; border-radius:8px; padding:10px 16px; 
-                     cursor:pointer; font-weight:600;">
+              class="bg-[#111827] text-[#fff] px-5 py-2.5 rounded-lg font-semibold text-sm hover:opacity-90 transition">
         💾 Save Network
       </button>
     </div>
   </form>
 </div>
+
+<!-- Apply Tailwind styles to Django form fields -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const inputs = document.querySelectorAll("input, select, textarea");
+  inputs.forEach(el => {
+    el.classList.add(
+      "border", "border-[#e5e7eb]", "rounded-lg", "p-2.5", "text-sm",
+      "focus:ring-2", "focus:ring-[#111827]", "focus:border-[#111827]",
+      "bg-[#fff]", "text-[#111827]", "outline-none", "transition", "w-full"
+    );
+  });
+});
+</script>
+
 {% endblock %}

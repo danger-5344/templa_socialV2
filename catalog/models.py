@@ -79,7 +79,10 @@ class OfferLink(models.Model):
 
     def __str__(self):
         return f"{self.offer} | {self.url[:50]}..."
-    
+    class Meta:
+        indexes = [
+            models.Index(fields=['is_active']),
+        ]
 class PersonalizedTag(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="personalized_tags")
     platform = models.ForeignKey("Platform", on_delete=models.CASCADE, related_name="personalized_tags")

@@ -1,81 +1,27 @@
 {% extends 'base.html' %}
 {% block content %}
-<style>
-/* Card Styling */
-.card {
-  max-width: 450px;
-  margin: 80px auto;
-  padding: 30px 25px;
-  background: #ffffff;
-  border-radius: 15px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-  text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-}
 
-/* Heading */
-.card h3 {
-  font-size: 22px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 25px;
-}
-
-/* Buttons */
-.btn {
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 10px;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
-}
-.btn:hover {
-  transform: translateY(-2px);
-}
-
-/* Confirm Delete Button */
-.btn-delete {
-  background-color: #ef4444; /* red */
-  color: #fff;
-  margin-right: 10px;
-}
-.btn-delete:hover {
-  background-color: #dc2626;
-}
-
-/* Cancel Button (optional if you add) */
-.btn-cancel {
-  background-color: #e5e7eb; /* gray */
-  color: #374151;
-}
-.btn-cancel:hover {
-  background-color: #d1d5db;
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-  .card {
-    padding: 20px;
-  }
-  .btn {
-    width: 100%;
-    margin-bottom: 10px;
-  }
-}
-</style>
-
-<div class="card">
-  <h3>⚠️ Delete "<span style="color:#ef4444;">{{ object }}</span>"?</h3>
-  <form method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-delete">Confirm Delete</button>
-    <a href="{% url 'emails:my_templates' %}" class="btn btn-cancel">Cancel</a>
-  </form>
+<div class="flex items-center justify-center min-h-[80vh] bg-gray-50 px-4">
+  <div class="bg-white rounded-2xl shadow-lg max-w-md w-full p-8 text-center transition-transform transform hover:-translate-y-1 hover:shadow-xl">
+    
+    <h3 class="text-2xl font-semibold text-gray-900 mb-6">
+      ⚠️ Delete "<span class="text-red-500">{{ object }}</span>"?
+    </h3>
+    
+    <form method="post" class="flex flex-col sm:flex-row justify-center gap-4">
+      {% csrf_token %}
+      <button type="submit" 
+              class="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-transform transform hover:-translate-y-1">
+        Confirm Delete
+      </button>
+      
+      <a href="{% url 'emails:my_templates' %}" 
+         class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-transform transform hover:-translate-y-1">
+        Cancel
+      </a>
+    </form>
+    
+  </div>
 </div>
+
 {% endblock %}

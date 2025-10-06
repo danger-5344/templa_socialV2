@@ -1,173 +1,74 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<style>
-  body {
-    font-family: "Inter", system-ui, sans-serif;
-    background: #f3f4f6;
-    color: #111827;
-  }
 
-  .param-wrap {
-    max-width: 800px;
-    margin: 30px auto;
-    background: #fff;
-    padding: 24px;
-    border-radius: 16px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-  }
+<div class="min-h-screen bg-gray-50 px-4 py-8">
+  <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl p-8">
 
-  .param-wrap h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: #1f2937;
-  }
+    <!-- Title -->
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Tracking Parameters</h2>
 
-  .form-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    align-items: flex-end;
-  }
-
-  select,
-  input,
-  textarea {
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    width: 100%;
-    transition: border 0.2s, box-shadow 0.2s;
-  }
-
-  select:focus,
-  input:focus,
-  textarea:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-    outline: none;
-  }
-
-  label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: #374151;
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-  }
-
-  .btn, .btn-outline, .btn-danger {
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .btn { background: #2563eb; color: #fff; border: none; }
-  .btn:hover { background: #1e40af; }
-
-  .btn-outline {
-    background: transparent;
-    border: 1px solid #d1d5db;
-    color: #374151;
-  }
-  .btn-outline:hover {
-    border-color: #2563eb;
-    color: #2563eb;
-  }
-
-  .btn-danger { background: #dc2626; border: none; color: #fff; }
-  .btn-danger:hover { background: #b91c1c; }
-
-  .muted { color: #6b7280; font-size: 0.875rem; }
-
-  .example-box {
-    font-size: 13px;
-    color: #374151;
-    background: #f9fafb;
-    border: 1px dashed #d1d5db;
-    padding: 12px;
-    margin-top: 12px;
-    border-radius: 8px;
-  }
-
-  .example-box code {
-    background: #e5e7eb;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-  }
-</style>
-
-<div class="card param-wrap">
-  <h2>Tracking Parameters</h2>
-
-  <!-- Picker -->
-  <div style="margin-bottom:20px">
-    <label>Existing parameters</label>
-    <div class="form-row">
-      <select id="paramPicker">
-        <option value="">-- Select param to edit --</option>
-        {% for p in params %}
-          <option value="{{ p.pk }}">
-            {% if p.platform %}{{ p.platform.name }}{% else %}Param #{{ p.pk }}{% endif %}
-          </option>
-        {% endfor %}
-      </select>
-      <button type="button" id="loadBtn" class="btn-outline">Load</button>
-      <form id="deleteForm" method="post" style="display:inline">
-        {% csrf_token %}
-        <input type="hidden" name="dummy" />
-      </form>
-      <a href="{% url 'catalog:param_index' %}" id="clearBtn" class="btn-outline">Clear</a>
+    <!-- Picker -->
+    <div class="mb-6">
+      <label class="block text-gray-700 font-semibold mb-2">Existing parameters</label>
+      <div class="flex flex-wrap gap-3 items-center">
+        <select id="paramPicker" class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <option value="">-- Select param to edit --</option>
+          {% for p in params %}
+            <option value="{{ p.pk }}">
+              {% if p.platform %}{{ p.platform.name }}{% else %}Param #{{ p.pk }}{% endif %}
+            </option>
+          {% endfor %}
+        </select>
+        <button type="button" id="loadBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition">Load</button>
+        <form id="deleteForm" method="post" class="inline">
+          {% csrf_token %}
+          <input type="hidden" name="dummy" />
+        </form>
+        <button id="clearBtn" type="button" class="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-100 transition">Clear</button>
+      </div>
+      <p class="text-gray-500 mt-2 text-sm">Pick an existing parameter and click <strong>Load</strong> to edit it.</p>
     </div>
-    <div class="muted" style="margin-top:6px">
-      Pick an existing parameter and click <strong>Load</strong> to edit it.
-    </div>
-  </div>
 
-  <!-- Form -->
-  <form method="post" id="paramForm">
-    {% csrf_token %}
-    <input type="hidden" name="param_id" id="param_id" value="">
+    <!-- Form -->
+    <form method="post" id="paramForm" class="space-y-6">
+      {% csrf_token %}
+      <input type="hidden" name="param_id" id="param_id" value="">
 
-    <div style="margin-top:20px">
-      <label>Platform</label>
-      {{ form.platform }}
-      {% for e in form.platform.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
-    </div>
-     <div>
-        <label style="display:block;font-weight:600;margin-bottom:6px">Active</label>
-        {{ form.is_active }}
+      <!-- Platform -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-2">Platform</label>
+        {{ form.platform }}
+        {% for e in form.platform.errors %}<div class="text-red-600 text-sm mt-1">{{ e }}</div>{% endfor %}
       </div>
 
-    <div style="margin-top:20px">
-      <label>Params (JSON)</label>
-      {{ form.params }}
-      {% if form.params.help_text %}<div class="muted">{{ form.params.help_text }}</div>{% endif %}
-      {% for e in form.params.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
-    </div>
+      <!-- Active Checkbox -->
+      <div class="flex items-center space-x-2">
+        {{ form.is_active }}
+        <label class="text-gray-700 font-semibold">Active</label>
+      </div>
 
-    <div class="example-box">
-      <strong>Example JSON:</strong> 
-      <code>{"utm_source":"newsletter","utm_medium":"email","utm_campaign":"fall"}</code>
-    </div>
+      <!-- JSON Params -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-2">Params (JSON)</label>
+        {{ form.params }}
+        {% if form.params.help_text %}<p class="text-gray-500 text-sm mt-1">{{ form.params.help_text }}</p>{% endif %}
+        {% for e in form.params.errors %}<div class="text-red-600 text-sm mt-1">{{ e }}</div>{% endfor %}
+      </div>
 
-    <div class="form-actions">
-      <button class="btn" type="submit">Save</button>
-      <button class="btn-outline" type="button" id="cancelEdit">Cancel Edit</button>
-      <button class="btn-danger" type="button" id="deleteBtn" style="display:none">Delete</button>
-    </div>
-  </form>
+     <!-- Example JSON -->
+<div class="bg-gray-100 border border-dashed border-gray-300 rounded-xl p-4 text-sm text-gray-700 break-words">
+  <strong>Example JSON:</strong> 
+  <code class="break-words">{"utm_source":"newsletter","utm_medium":"email","utm_campaign":"fall"}</code>
+</div>
+      <!-- Form Actions -->
+      <div class="flex flex-wrap gap-3 justify-end mt-4">
+        <button class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition" type="submit">Save</button>
+        <button class="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-100 transition" type="button" id="cancelEdit">Cancel Edit</button>
+        <button class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition" type="button" id="deleteBtn" style="display:none">Delete</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script>
@@ -176,6 +77,11 @@ const loadBtn = document.getElementById('loadBtn');
 const paramIdField = document.getElementById('param_id');
 const deleteBtn = document.getElementById('deleteBtn');
 const cancelEdit = document.getElementById('cancelEdit');
+const clearBtn = document.getElementById('clearBtn');
+
+clearBtn.addEventListener('click', function() {
+    clearForm();
+});
 
 function setFormData(data) {
   paramIdField.value = data.id || '';
@@ -228,5 +134,22 @@ deleteBtn.addEventListener('click', function(){
   if(!confirm('Delete this parameter?')) return;
   document.getElementById('deleteForm').submit();
 });
+
+// Apply Tailwind styling dynamically to Django form fields
+document.addEventListener('DOMContentLoaded', () => {
+  const inputs = document.querySelectorAll('#paramForm input, #paramForm select, #paramForm textarea');
+  inputs.forEach(el => {
+    el.classList.add(
+      'w-full', 'px-4', 'py-3', 'border', 'border-gray-300', 'rounded-xl',
+      'focus:ring-2', 'focus:ring-blue-400', 'focus:outline-none', 'text-gray-700'
+    );
+  });
+
+  const checkboxes = document.querySelectorAll('#paramForm input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    cb.classList.add('mr-2', 'w-5', 'h-5', 'text-blue-600', 'border-gray-300', 'rounded');
+  });
+});
 </script>
+
 {% endblock %}

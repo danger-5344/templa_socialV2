@@ -1,270 +1,80 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<style>
-/* --- Container --- */
-.container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 10px;
-  font-family: 'Inter', sans-serif;
-  color: #111827;
-}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-inter rounded-2xl overflow-hidden"
+     style="--bg:#ffffff; --ink:#111827; --muted:#6b7280; --bd:#e5e7eb; --brand:#111827; --btn:#111827; --btn-ink:#fff; --btn-danger:#e74c3c; --btn-danger-hover:#c0392b; background-color: var(--bg); color: var(--ink);">
 
-/* --- Search Bar --- */
-.search-card {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 40px;
-}
-.search-form {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-  max-width: 100%;
-}
-.search-form input {
-  flex: 12;
-  padding: 14px 18px;
-  border-radius: 14px;
-  border: 1px solid #e5e7eb;
-  background: rgba(255,255,255,0.8);
-  backdrop-filter: blur(6px);
-  font-size: 15px;
-  transition: all .3s ease;
-
-}
-.search-form input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 8px 25px rgba(59,130,246,0.25);
-  outline: none;
-}
-.search-form .btn {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  color: #fff;
-  font-weight: 600;
-  border-radius: 14px;
-  padding: 14px 22px;
-  transition: all .2s ease;
-  border: none;
-  cursor: pointer;
-}
-.search-form .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(37,99,235,0.3);
-}
-
-/* --- Templates Grid --- */
-.templates-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 28px;
-}
-
-/* --- Template Card --- */
-.template-card {
-  position: relative;
-  background: rgba(255,255,255,0.85);
-  border-radius: 16px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: all .3s ease;
-  border: 1px solid rgba(200,200,200,0.3);
-  backdrop-filter: blur(8px);
-}
-.template-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-}
-
-/* --- Ribbon Badge --- */
-.ribbon {
-  width: 90px;
-  height: 30px;
-  background: #28a745;
-  color: white;
-  text-align: center;
-  font-weight: 600;
-  font-size: 12px;
-  line-height: 30px;
-  position: absolute;
-  top: 7px;
-  right: -26px;
-  transform: rotate(45deg);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-/* --- Snapshot --- */
-.snapshot img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-}
-.no-snapshot {
-  height: 180px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #9ca3af;
-  font-size: 14px;
-  border-bottom: 1px dashed #ddd;
-}
-
-/* --- Info Section --- */
-.info {
-  padding: 18px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.info h3 {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-  color: #111827;
-}
-.muted {
-  font-size: 13px;
-  color: #6b7280;
-}
-.actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-/* --- Buttons --- */
-.btn {
-  flex: 1;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 14px;
-  border: none;
-  cursor: pointer;
-  transition: all .2s ease;
-}
-.btn:hover {
-  transform: translateY(-1px);
-}
-.btn-outline {
-  background: transparent;
-  border: 1px solid #2563eb;
-  color: #2563eb;
-}
-.btn-outline:hover {
-  background: #2563eb;
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(37,99,235,0.25);
-}
-
-/* --- Modal --- */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  z-index: 9999;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .3s ease;
-}
-.modal-backdrop.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-.modal-dialog {
-  background: #fff;
-  border-radius: 18px;
-  max-width: 900px;
-  width: 100%;
-  max-height: 85vh;
-  overflow-y: auto;
-  position: relative;
-  padding: 24px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-}
-.close-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: #f3f4f6;
-  border: none;
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  font-size: 18px;
-  cursor: pointer;
-  transition: all .2s ease;
-}
-.close-btn:hover {
-  background: #e5e7eb;
-}
-
-/* --- Responsive --- */
-@media (max-width: 640px) {
-  .actions {
-    flex-direction: column;
-  }
-  .btn, .btn-outline {
-    width: 100%;
-  }
-  .templates-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
-
-<div class="container">
 
   <!-- Search Card -->
-  <div class="search-card">
-    <form method="get" class="search-form">
-      <input type="text" name="q" value="{{q}}" placeholder="Search public templates">
-      <button class="btn">Search</button>
+  <div class="flex justify-center mb-10">
+    <form method="get" class="flex flex-col sm:flex-row gap-3 w-full max-w-3xl">
+      <input type="text" name="q" value="{{q}}" placeholder="Search public templates"
+             class="flex-1 px-4 py-3 rounded-xl border border-[var(--bd)] bg-white/80 backdrop-blur-sm text-[var(--ink)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:border-[var(--brand)] transition" />
+      <button class="px-5 py-3 rounded-xl font-semibold text-[var(--btn-ink)] bg-[var(--btn)] shadow hover:bg-opacity-90 transform hover:-translate-y-1 transition">
+        Search
+      </button>
     </form>
   </div>
 
   <!-- Templates Grid -->
-  <div class="templates-grid">
+  <div class="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
     {% for t in templates %}
-    <div class="template-card">
+    <div class="relative bg-white/90 backdrop-blur-sm border border-[var(--bd)] rounded-2xl overflow-hidden flex flex-col transition-transform transform hover:scale-80 hover:-translate-y-1 hover:shadow-2xl">
+      
+      <!-- Ribbon -->
       {% if t.id in used_template_ids %}
-        <div class="ribbon">Used</div>
+      <div class="absolute top-4 -right-6 rotate-45 bg-green-600 text-white font-semibold text-xs py-1 px-9 shadow-lg">Used</div>
       {% endif %}
-      <div class="snapshot">
-        {% if t.snapshot %}
-          <img src="{{ t.snapshot.url }}" alt="{{ t.title }}">
-        {% else %}
-          <div class="no-snapshot">No snapshot</div>
-        {% endif %}
+
+      <!-- Snapshot -->
+      {% if t.snapshot %}
+      <img src="{{ t.snapshot.url }}" alt="{{ t.title }}" class="w-full h-44 object-cover">
+      {% else %}
+      <div class="h-44 flex items-center justify-center text-[var(--muted)] text-sm border-b border-dashed border-[var(--bd)]">
+        No snapshot
       </div>
-      <div class="info">
-        <h3>{{ t.title }}</h3>
-        <p class="muted">by {{ t.owner.username }}{% if t.platform %} · Platform: {{ t.platform.name }}{% endif %}</p>
-        <p class="muted">Updated at: {{ t.updated_at|date:"M d, Y H:i" }}</p>
-        <div class="actions">
-          <a href="{% url 'emails:template_use' t.pk %}" class="btn" style="text-align: center;">Use Template</a>
-          <button type="button" class="btn-outline" data-preview-url="{% url 'emails:template_preview' t.pk %}" onclick="openPreview(event, this)">Preview</button>
+      {% endif %}
+
+      <!-- Info -->
+      <div class="p-5 flex flex-col gap-2">
+        <h3 class="text-lg font-semibold text-[var(--ink)]">{{ t.title }}</h3>
+        <p class="text-sm text-[var(--muted)]">
+          by {{ t.owner.username }}{% if t.platform %} · Platform: {{ t.platform.name }}{% endif %}
+        </p>
+        <p class="text-sm text-[var(--muted)]">Updated at: {{ t.updated_at|date:"M d, Y H:i" }}</p>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-3 mt-3">
+          <a href="{% url 'emails:template_use' t.pk %}"
+             class="flex-1 text-center px-4 py-2 rounded-lg bg-[var(--btn)] text-[var(--btn-ink)] font-semibold shadow hover:bg-opacity-90 transition">
+            Use Template
+          </a>
+          <button type="button" 
+                  class="flex-1 px-4 py-2 rounded-lg border border-[var(--btn)] text-[var(--btn)] font-semibold hover:bg-[var(--btn)] hover:text-[var(--btn-ink)] shadow transition"
+                  data-preview-url="{% url 'emails:template_preview' t.pk %}" onclick="openPreview(event, this)">
+            Preview
+          </button>
         </div>
       </div>
     </div>
     {% empty %}
-      <div class="card" style="text-align:center; padding:40px;">No public templates yet.</div>
+    <div class="col-span-full text-center text-[var(--muted)] py-20 bg-white rounded-2xl shadow">
+      No public templates yet.
+    </div>
     {% endfor %}
   </div>
 
   <!-- Preview Modal -->
-  <div id="previewModal" class="modal-backdrop">
-    <div role="dialog" aria-modal="true" class="modal-dialog">
-      <button onclick="closePreview()" aria-label="Close" class="close-btn">✕</button>
-      <div id="previewContent">Loading…</div>
+  <div id="previewModal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity z-50">
+    <div role="dialog" aria-modal="true" class="bg-white rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-y-auto relative p-6 shadow-2xl">
+      <button onclick="closePreview()" aria-label="Close"
+              class="absolute top-4 right-4 bg-[var(--bd)] rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-300 transition">
+        ✕
+      </button>
+      <div id="previewContent" class="text-[var(--ink)]">Loading…</div>
     </div>
   </div>
+
 </div>
 
 <script>
@@ -273,16 +83,17 @@ function openPreview(e, btn) {
   const url = btn.getAttribute('data-preview-url');
   const modal = document.getElementById('previewModal');
   const content = document.getElementById('previewContent');
-  modal.classList.add('active');
+  modal.classList.add('opacity-100', 'pointer-events-auto');
   content.innerHTML = 'Loading…';
   fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
     .then(html => { content.innerHTML = html; })
-    .catch(() => { content.innerHTML = '<div class="card">Failed to load preview.</div>'; });
+    .catch(() => { content.innerHTML = '<div class="text-center text-[var(--btn-danger)]">Failed to load preview.</div>'; });
 }
 
 function closePreview() {
-  document.getElementById('previewModal').classList.remove('active');
+  const modal = document.getElementById('previewModal');
+  modal.classList.remove('opacity-100', 'pointer-events-auto');
 }
 
 document.addEventListener('keydown', (e) => { if(e.key==='Escape') closePreview(); });

@@ -1,12 +1,16 @@
-<div>
+<div class="max-w-5xl mx-auto px-4 py-6">
+
   {% if template.title %}
-    <h3 style="margin:0 0 8px 0;">{{ template.title }}</h3>
-    <hr style="border:none;border-top:1px solid #e5e7eb;margin:8px 0 12px 0;">
+    <h3 class="text-xl font-semibold text-gray-900 mb-3">{{ template.title }}</h3>
+    <hr class="border-t border-gray-200 mb-4">
   {% endif %}
 
-  <iframe
-    srcdoc="{{ template.body_html|escape }}"
-    style="width:100%; height:70vh; border:1px solid #e5e7eb; border-radius:8px; background:white;"
-    sandbox=""
-  ></iframe>
+  <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+    <iframe
+      srcdoc="{{ template.body_html|escape }}"
+      class="w-full h-[70vh] rounded-lg"
+      sandbox=""
+    ></iframe>
+  </div>
+
 </div>

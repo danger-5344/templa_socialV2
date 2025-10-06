@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="card" style="max-width:650px; margin:auto;">
-  <h2 style="margin:0 0 16px 0; font-size:22px; font-weight:700; color:#111827;">
-    🔗 {% if edit %}Edit Offer {% else %}Add New Offer {% endif %}
+
+<div class="max-w-xl mx-auto bg-[#f6f7f9] border border-[#e5e7eb] rounded-2xl shadow-sm p-6 mt-8 mb-8">
+  <h2 class="text-2xl font-bold text-[#111827] mb-3 flex items-center gap-2">
+    🔗 {% if edit %}Edit Offer{% else %}Add New Offer{% endif %}
   </h2>
-  <p style="color:#6b7280; margin-bottom:20px;">
+
+  <p class="text-[#6b7280] mb-6 text-sm leading-relaxed">
     {% if edit %}
       Update the details of this offer below.
     {% else %}
@@ -12,45 +14,62 @@
     {% endif %}
   </p>
 
-  <form method="post" style="display:flex; flex-direction:column; gap:18px;">
+  <form method="post" class="flex flex-col gap-5">
     {% csrf_token %}
 
     {% for field in form %}
-      <div>
-        <label style="display:block; font-size:14px; font-weight:600; margin-bottom:6px; color:#374151;">
+      <div class="flex flex-col">
+        <label class="text-sm font-semibold mb-2 text-[#111827]">
           {{ field.label }}
         </label>
+
+        <!-- field rendered by Django -->
         {{ field }}
+
         {% if field.help_text %}
-          <small style="color:#6b7280; display:block; margin-top:4px;">{{ field.help_text }}</small>
+          <small class="text-xs text-[#6b7280] mt-1">{{ field.help_text }}</small>
         {% endif %}
+
         {% for error in field.errors %}
-          <div style="color:#b91c1c; font-size:13px; margin-top:4px;">{{ error }}</div>
+          <div class="text-[#e74c3c] text-sm mt-1">{{ error }}</div>
         {% endfor %}
       </div>
     {% endfor %}
- {% if not edit %}<div style="font-size:13px; color:#6b7280; background:#f9fafb; border:1px dashed #d1d5db; padding:12px; border-radius:8px;">
-      <strong>Example:</strong><br>
-      Network: <code>Affiliate Network A</code><br>
-      Offer: <code>50% Discount</code><br>
-      Link: <code>https://example.com/offer?utm_source=newsletter</code>
-    </div>
-    
-    {% endif %}
-    
 
-    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px;">
-      <a href="{% url 'catalog:offer_index' %}" 
-         style="background:#fff; border:1px solid #d1d5db; border-radius:8px; padding:10px 16px; 
-                text-decoration:none; color:#374151; font-weight:500;">
+    {% if not edit %}
+      <div class="text-sm text-[#6b7280] bg-[#fff] border border-dashed border-[#e5e7eb] rounded-lg p-4">
+        <strong class="text-[#111827]">Example:</strong><br>
+        Network: <code class="text-[#111827] bg-[#f6f7f9] px-1 rounded">Affiliate Network A</code><br>
+        Offer: <code class="text-[#111827] bg-[#f6f7f9] px-1 rounded">50% Discount</code><br>
+        Link: <code class="text-[#111827] bg-[#f6f7f9] px-1 rounded">https://example.com/offer?utm_source=newsletter</code>
+      </div>
+    {% endif %}
+
+    <div class="flex flex-wrap justify-end gap-3 mt-4">
+      <a href="{% url 'catalog:offer_index' %}"
+         class="bg-[#fff] border border-[#e5e7eb] text-[#111827] px-4 py-2 rounded-lg font-medium text-sm hover:bg-[#f6f7f9] transition">
         Cancel
       </a>
-      <button type="submit" 
-              style="background:#111827; color:#fff; border:none; border-radius:8px; padding:10px 16px; 
-                     cursor:pointer; font-weight:600;">
+      <button type="submit"
+              class="bg-[#111827] text-[#fff] px-4 py-2 rounded-lg font-semibold text-sm hover:opacity-90 transition">
         💾 Save Offer
       </button>
     </div>
   </form>
 </div>
+
+<!-- Tailwind enhancement for Django-rendered fields -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const inputs = document.querySelectorAll("input, select, textarea");
+  inputs.forEach(el => {
+    el.classList.add(
+      "border", "border-[#e5e7eb]", "rounded-lg", "p-2.5", "text-sm",
+      "focus:ring-2", "focus:ring-[#111827]", "focus:border-[#111827]",
+      "bg-[#fff]", "text-[#111827]", "outline-none", "transition"
+    );
+  });
+});
+</script>
+
 {% endblock %}

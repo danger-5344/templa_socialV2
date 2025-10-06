@@ -1,70 +1,89 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="card" style="max-width:720px;margin:auto;padding:18px">
-  <h2 style="margin:0 0 12px 0">{% if edit %}Edit{% else %}Add{% endif %} Personalized Tags</h2>
-  <p class="muted">Choose the platform and define the placeholders and footer snippets used when rendering templates for this platform.</p>
 
-  <form method="post" style="display:flex;flex-direction:column;gap:12px">
+<div class="max-w-3xl mx-auto px-4 py-8 bg-white rounded-3xl shadow-lg my-4">
+
+  <h2 class="text-2xl font-extrabold text-gray-900 mb-2">
+    {% if edit %}Edit{% else %}Add{% endif %} Personalized Tags
+  </h2>
+  <p class="text-gray-500 mb-6">
+    Choose the platform and define the placeholders and footer snippets used when rendering templates for this platform.
+  </p>
+
+  <form id="personalizedTagsForm" method="post" class="space-y-6">
     {% csrf_token %}
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div>
-  <label style="display:block;font-weight:600;margin-bottom:6px">Platform</label>
-  {% if edit %}
-    <input type="text" value="{{ platform_name }}" readonly>
-  {% else %}
-    {{ form.platform }}
-  {% endif %}
-  {% for e in form.platform.errors %}
-    <div style="color:#b91c1c">{{ e }}</div>
-  {% endfor %}
-</div>
 
+    <!-- Platform & Active -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <label style="display:block;font-weight:600;margin-bottom:6px">Active</label>
+        <label class="block font-semibold mb-1 text-gray-700">Platform</label>
+        {% if edit %}
+          <input type="text" value="{{ platform_name }}" readonly class="w-full border rounded-xl bg-gray-100 cursor-not-allowed">
+          <input type="hidden" name="platform" value="{{ form.platform.value }}">
+        {% else %}
+          {{ form.platform }}
+        {% endif %}
+        {% for e in form.platform.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ e }}</p>
+        {% endfor %}
+      </div>
+      <div>
+        <label class="block font-semibold mb-1 text-gray-700">Active</label>
         {{ form.is_active }}
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <!-- All other fields remain unchanged -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <label style="display:block;font-weight:600;margin-bottom:6px">First name tag</label>
+        <label class="block font-semibold mb-1 text-gray-700">First Name Tag</label>
         {{ form.first_name_tag }}
-        {% for e in form.first_name_tag.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
       </div>
       <div>
-        <label style="display:block;font-weight:600;margin-bottom:6px">Last name tag</label>
+        <label class="block font-semibold mb-1 text-gray-700">Last Name Tag</label>
         {{ form.last_name_tag }}
-        {% for e in form.last_name_tag.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
       </div>
     </div>
- <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-    <div>
-        <label style="display:block;font-weight:600;margin-bottom:6px">Email tag</label>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-semibold mb-1 text-gray-700">Email Tag</label>
         {{ form.email_tag }}
-        {% for e in form.email_tag.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}</div>
-    <div>
-      <label style="display:block;font-weight:600;margin-bottom:6px">Date tag</label>
-      {{ form.date_tag }}
-      {% for e in form.date_tag.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
-    </div></div>
-      
+      </div>
+      <div>
+        <label class="block font-semibold mb-1 text-gray-700">Date Tag</label>
+        {{ form.date_tag }}
+      </div>
+    </div>
 
     <div>
-      <label style="display:block;font-weight:600;margin-bottom:6px">Footer 1 code</label>
+      <label class="block font-semibold mb-1 text-gray-700">Footer 1 Code</label>
       {{ form.footer1_code }}
-      {% for e in form.footer1_code.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
     </div>
 
     <div>
-      <label style="display:block;font-weight:600;margin-bottom:6px">Footer 2 code</label>
+      <label class="block font-semibold mb-1 text-gray-700">Footer 2 Code</label>
       {{ form.footer2_code }}
-      {% for e in form.footer2_code.errors %}<div style="color:#b91c1c">{{ e }}</div>{% endfor %}
     </div>
 
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <a href="{% url 'catalog:personalized_tag_list' %}" class="btn-outline">Cancel</a>
-      <button type="submit" class="btn">{% if edit %}Save Changes{% else %}Create{% endif %}</button>
+    <div class="flex flex-wrap justify-end gap-3">
+      <a href="{% url 'catalog:personalized_tag_list' %}"
+         class="px-4 py-2 border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 transition">Cancel</a>
+      <button type="submit"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition">
+        {% if edit %}Save Changes{% else %}Create{% endif %}
+      </button>
     </div>
   </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const formFields = document.querySelectorAll('#personalizedTagsForm input, #personalizedTagsForm select, #personalizedTagsForm textarea');
+  formFields.forEach(field => {
+    field.classList.add('px-4', 'py-1', 'text-lg'); // Increase padding & font size
+  });
+});
+</script>
+
 {% endblock %}

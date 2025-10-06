@@ -1,32 +1,54 @@
-# Use official Python image
-FROM python:3.13-slim
+# Use official lightweight Python image
+FROM python:3.13-slim AS base
 
-# Set environment variables
+# -----------------------------
+# 1. Set environment variables
+# -----------------------------
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV PATH="/app/.venv/bin:$PATH"
 
-# Set work directory
+# -----------------------------
+# 2. Set working directory
+# -----------------------------
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# -----------------------------
+# 3. Install system dependencies
+# -----------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# -----------------------------
+# 4. Install Python dependencies
+# -----------------------------
 COPY requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
-# Copy project
+# -----------------------------
+# 5. Copy project code
+# -----------------------------
 COPY . .
 
-# Collect static files
+# -----------------------------
+# 6. Collect static files
+# -----------------------------
 RUN python manage.py collectstatic --noinput
 
-# Expose port 8000
+# -----------------------------
+# 7. Expose port
+# -----------------------------
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000"]
+# -----------------------------
+# 8. Production Gunicorn CMD
+# -----------------------------
+# - 3 workers
+# - timeout 120s
+# - binds 0.0.0.0:8000
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]

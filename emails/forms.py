@@ -2,7 +2,7 @@
 from django import forms
 from .models import EmailTemplate
 from catalog.models import Platform, TrackingParamSet, OfferLink
-
+from django_select2.forms import ModelSelect2Widget
 from django import forms
 from .models import EmailTemplate
 
@@ -60,10 +60,16 @@ class EmailTemplateForm(forms.ModelForm):
 
 class UseTemplateForm(forms.Form):
     platform = forms.ModelChoiceField(queryset=Platform.objects.none(), required=False)
-    tracking = forms.ModelChoiceField(queryset=TrackingParamSet.objects.all(), required=False,
-                                      help_text="Optional UTM set")
-    offer_link = forms.ModelChoiceField(queryset=OfferLink.objects.filter(is_active=True), required=False,
-                                        help_text="Admin-managed links")
+    offer_link = forms.ModelChoiceField(
+        queryset=OfferLink.objects.none(),
+        required=False,
+        widget=ModelSelect2Widget(
+            model=OfferLink,
+            search_fields=['offer__name__icontains'],
+            data_view='emails:offerlink-autocomplete',  # important!
+            attrs={'data-placeholder': 'Type to search…'}
+        )
+    )
     cta_text = forms.CharField(required=False, help_text="Anchor text for CTA button/link")
     cta_fallback_url = forms.URLField(required=False, help_text="Used if no Offer Link selected")
 
@@ -72,3 +78,4 @@ class UseTemplateForm(forms.Form):
         super().__init__(*args, **kwargs)
         if user:
             self.fields['platform'].queryset = Platform.objects.filter(created_by=user)
+        self.fields['offer_link'].queryset = OfferLink.objects.filter(is_active=True)

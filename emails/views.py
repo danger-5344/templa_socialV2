@@ -10,30 +10,47 @@ from .utils import detect_placeholders, fill_placeholders, append_query_params
 from catalog.models import PersonalizedTag, Platform, TrackingParamSet, OfferLink
 from django import forms
 from django.core.cache import cache
+from django.core.paginator import Paginator
+from django_select2.views import AutoResponseView
 
 def home(request):
     q = request.GET.get("q", "")
     templates = EmailTemplate.objects.filter(is_public=True)
+
     if q:
         templates = templates.filter(
-        Q(title__icontains=q) |
-        Q(subject__icontains=q) |
-        Q(from_name__icontains=q) |
-        Q(template_id__icontains=q)   # ✅ allow search by template id
-    )
+            Q(title__icontains=q) |
+            Q(subject__icontains=q) |
+            Q(from_name__icontains=q) |
+            Q(template_id__icontains=q)   # ✅ allow search by template id
+        )
 
-    templates = templates.select_related("owner").order_by("-updated_at")[:50]
-     # Get all template IDs the current user has used
+    templates = templates.select_related("owner").order_by("-updated_at")
+
+    # ✅ Pagination added (show 12 per page, no change in logic)
+    paginator = Paginator(templates, 9)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # Get all template IDs the current user has used
     if request.user.is_authenticated:
         used_template_ids = TemplateUsage.objects.filter(
-        user=request.user,
-        template__in=templates
-    ).values_list('template_id', flat=True)
+            user=request.user,
+            template__in=page_obj  # ✅ paginate-aware query
+        ).values_list('template_id', flat=True)
     else:
         used_template_ids = []  # empty list for anonymous users
 
-
-    return render(request, "emails/home.html", {"templates": templates, "q": q, "used_template_ids": used_template_ids})
+    return render(
+        request,
+        "emails/home.html",
+        {
+            "templates": page_obj,              # ✅ paginated queryset
+            "q": q,
+            "used_template_ids": used_template_ids,
+            "page_obj": page_obj,               # ✅ added for pagination UI
+        },
+    )
 
 @login_required
 def my_templates(request):
@@ -52,8 +69,13 @@ def my_templates(request):
             templates = templates.filter(is_public=True)
         elif status == "inactive":
             templates = templates.filter(is_public=False)
-        
-    return render(request, "emails/my_templates.html", {"templates": templates})
+    # ✅ Pagination added (10 per pag)
+    paginator = Paginator(templates, 5)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "emails/my_templates.html", {"templates": page_obj, "page_obj": page_obj, "q": q,
+        "status": status})
 
 @login_required
 def template_create(request):
@@ -110,84 +132,82 @@ def record_template_usage(user, template):
         usage.last_used_at = timezone.now()
         usage.save(update_fields=["used_count", "last_used_at"])
 
+class OfferLinkAutocomplete(AutoResponseView):
+    def get_queryset(self):
+        qs = OfferLink.objects.filter(is_active=True)
+        term = self.request.GET.get("term", "")
+        if term:
+            # Search in the related Offer's name
+            qs = qs.filter(offer__name__icontains=term)
+        return qs
+
 @login_required
 def template_use(request, pk):
     tpl = get_object_or_404(EmailTemplate, pk=pk)
     detected_placeholders = detect_placeholders(tpl.body_html) + detect_placeholders(tpl.body_text)
     detected_placeholders = sorted(set(detected_placeholders))
-
-    # Access control
+  
+    
     if not tpl.is_public and tpl.owner != request.user and not request.user.is_staff:
         messages.error(request, "You don't have access to use this template.")
         return redirect("emails:home")
 
-    # Static form only
-    form = UseTemplateForm(request.POST or None, user=request.user)
-
-    if request.method == "POST":
-        if form.is_valid():
-            cleaned = form.cleaned_data.copy()
-            platform = cleaned.pop("platform", None)
-            offer_link = cleaned.pop("offer_link", None)
-            cta_fallback_url = cleaned.pop("cta_fallback_url", "")
-
-           
-            try:
-                tags = PersonalizedTag.objects.get(user=request.user, platform=platform, is_active=True)
-            except PersonalizedTag.DoesNotExist:
-                tags = None
-
-            # Build CTA URL
-            cta_url = ""
-            if offer_link:
-                cta_url = offer_link.url
-            elif cta_fallback_url:
-                cta_url = cta_fallback_url
-            
-            tracking = TrackingParamSet.objects.filter(platform=platform, is_active=True).first()
-
-            if tracking and cta_url:
-                cta_url = append_query_params(cta_url, tracking.params)
-
-            # Map template placeholders to platform tags
-            tag_map = {
-                "FIRST_NAME": tags.first_name_tag if tags else "{{FIRST_NAME}}",
-                "LAST_NAME": tags.last_name_tag if tags else "{{LAST_NAME}}",
-                "EMAIL": tags.email_tag if tags else "{{EMAIL}}",
-                "DATE": tags.date_tag if tags else "{{DATE}}",
-                "FOOTER1": tags.footer1_code if tags else "{{FOOTER1}}",
-                "FOOTER2": tags.footer2_code if tags else "{{FOOTER2}}",
-                "CTA_URL": cta_url or "{{CTA_URL}}",
-            }
-            # print("Tag map:", tag_map)
-             # Fill placeholders in the template
-            filled_html = fill_placeholders(tpl.body_html, tag_map)
-            filled_text = fill_placeholders(tpl.body_text, tag_map)
+    form = UseTemplateForm(user=request.user, data=request.POST or None)
 
 
-            
+    if request.method == "POST" and form.is_valid():
 
-            # print(filled_html, filled_text, cta_url)
-            usage, created = TemplateUsage.objects.get_or_create(
-                user=request.user,
-                template=tpl)
-            usage.increment_usage()
-        
-            return render(request, "emails/use_result.html", {
-                "template": tpl,
-                "filled_html": filled_html,
-                "filled_text": filled_text,
-                "cta_url": cta_url,
-                "platform": platform,
-                "tracking": tracking.params if tracking else {},
-                "offer_link": offer_link,
-            })
+        cleaned = form.cleaned_data.copy()
+        platform = cleaned.pop("platform", None)
+        offer_link = cleaned.pop("offer_link", None)
+        cta_fallback_url = cleaned.pop("cta_fallback_url", "")
+
+
+        try:
+            tags = PersonalizedTag.objects.get(user=request.user, platform=platform, is_active=True)
+        except PersonalizedTag.DoesNotExist:
+            tags = None
+
+
+        # Build CTA URL
+
+        cta_url = offer_link.url if offer_link else cta_fallback_url or ""
+        tracking = TrackingParamSet.objects.filter(platform=platform, is_active=True).first()
+        if tracking and cta_url:
+            cta_url = append_query_params(cta_url, tracking.params)
+
+
+        # Map template placeholders
+        tag_map = {
+            "FIRST_NAME": tags.first_name_tag if tags else "{{FIRST_NAME}}",
+            "LAST_NAME": tags.last_name_tag if tags else "{{LAST_NAME}}",
+            "EMAIL": tags.email_tag if tags else "{{EMAIL}}",
+            "DATE": tags.date_tag if tags else "{{DATE}}",
+            "FOOTER1": tags.footer1_code if tags else "{{FOOTER1}}",
+            "FOOTER2": tags.footer2_code if tags else "{{FOOTER2}}",
+            "CTA_URL": cta_url or "{{CTA_URL}}",
+        }
+
+        filled_html = fill_placeholders(tpl.body_html, tag_map)
+        filled_text = fill_placeholders(tpl.body_text, tag_map)
+        usage, created = TemplateUsage.objects.get_or_create(user=request.user, template=tpl)
+        usage.increment_usage()
+        return render(request, "emails/use_result.html", {
+            "template": tpl,
+            "filled_html": filled_html,
+            "filled_text": filled_text,
+            "cta_url": cta_url,
+            "platform": platform,
+            "tracking": tracking.params if tracking else {},
+            "offer_link": offer_link,
+        })
 
     return render(request, "emails/use_form.html", {
         "template": tpl,
         "form": form,
         "detected" : detected_placeholders,
     })
+
 
 def template_preview(request, pk):
     """

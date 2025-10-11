@@ -4,7 +4,6 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-inter rounded-2xl overflow-hidden"
      style="--bg:#ffffff; --ink:#111827; --muted:#6b7280; --bd:#e5e7eb; --brand:#111827; --btn:#111827; --btn-ink:#fff; --btn-danger:#e74c3c; --btn-danger-hover:#c0392b; background-color: var(--bg); color: var(--ink);">
 
-
   <!-- Search Card -->
   <div class="flex justify-center mb-10">
     <form method="get" class="flex flex-col sm:flex-row gap-3 w-full max-w-3xl">
@@ -63,6 +62,36 @@
     </div>
     {% endfor %}
   </div>
+
+  <!-- ✅ Pagination Section -->
+  {% if templates.has_other_pages %}
+  <div class="flex justify-center mt-10">
+    <nav class="inline-flex items-center space-x-2 bg-white/90 backdrop-blur-sm px-5 py-3 rounded-xl border border-[var(--bd)] shadow-md text-sm font-medium">
+      {% if templates.has_previous %}
+        <a href="?{% if q %}q={{ q }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ templates.previous_page_number }}" 
+           class="px-3 py-1 rounded-lg border border-[var(--bd)] hover:bg-[var(--brand)] hover:text-white transition">« Prev</a>
+      {% else %}
+        <span class="px-3 py-1 rounded-lg border border-[var(--bd)] text-gray-400 opacity-60">« Prev</span>
+      {% endif %}
+
+      {% for i in templates.paginator.page_range %}
+        {% if i == templates.number %}
+          <span class="px-3 py-1 rounded-lg bg-[var(--brand)] text-white shadow">{{ i }}</span>
+        {% elif i > templates.number|add:'-3' and i < templates.number|add:'3' %}
+          <a href="?{% if q %}q={{ q }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ i }}" 
+             class="px-3 py-1 rounded-lg border border-[var(--bd)] hover:bg-[var(--brand)] hover:text-white transition">{{ i }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if templates.has_next %}
+        <a href="?{% if q %}q={{ q }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ templates.next_page_number }}" 
+           class="px-3 py-1 rounded-lg border border-[var(--bd)] hover:bg-[var(--brand)] hover:text-white transition">Next »</a>
+      {% else %}
+        <span class="px-3 py-1 rounded-lg border border-[var(--bd)] text-gray-400 opacity-60">Next »</span>
+      {% endif %}
+    </nav>
+  </div>
+  {% endif %}
 
   <!-- Preview Modal -->
   <div id="previewModal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity z-50">

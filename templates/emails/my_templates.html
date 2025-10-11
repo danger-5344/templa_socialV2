@@ -72,10 +72,42 @@
       </tbody>
     </table>
   </div>
+  
+  
 </div>
 
+  <!-- ✅ Pagination Section -->
+  {% if templates.has_other_pages %}
+  <div class="flex justify-center mt-10">
+    <nav class="inline-flex items-center space-x-2 bg-white/90 backdrop-blur-sm px-5 py-3 rounded-xl border border-[var(--bd)] shadow-md text-sm font-medium">
+      {% if templates.has_previous %}
+        <a href="?{% if q %}q={{ q }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ templates.previous_page_number }}" 
+           class="px-3 py-1 rounded-lg border border-[var(--bd)] hover:bg-[var(--brand)] hover:text-white transition">« Prev</a>
+      {% else %}
+        <span class="px-3 py-1 rounded-lg border border-[var(--bd)] text-gray-400 opacity-60">« Prev</span>
+      {% endif %}
+
+      {% for i in templates.paginator.page_range %}
+        {% if i == templates.number %}
+          <span class="px-3 py-1 rounded-lg bg-[var(--brand)] text-white shadow">{{ i }}</span>
+        {% elif i > templates.number|add:'-3' and i < templates.number|add:'3' %}
+          <a href="?{% if q %}q={{ q }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ i }}" 
+             class="px-3 py-1 rounded-lg border border-[var(--bd)] hover:bg-[var(--brand)] hover:text-white transition">{{ i }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if templates.has_next %}
+        <a href="?{% if q %}q={{ q }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ templates.next_page_number }}" 
+           class="px-3 py-1 rounded-lg border border-[var(--bd)] hover:bg-[var(--brand)] hover:text-white transition">Next »</a>
+      {% else %}
+        <span class="px-3 py-1 rounded-lg border border-[var(--bd)] text-gray-400 opacity-60">Next »</span>
+      {% endif %}
+    </nav>
+  </div> <br>
+  {% endif %}
 <style>
 /* Card wrapper */
+
 .card {
   background: #fff;
   padding: 20px;
@@ -105,7 +137,7 @@ h2 {
   font-size: 14px;
   border-radius: 20px;
   text-decoration: none;
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, #111827, #111827);
   color: #fff;
   transition: 0.3s ease;
 }
@@ -141,7 +173,7 @@ h2 {
 }
 
 .search-form input[type="text"]:focus, .search-form select:focus {
-  border-color: #007bff;
+  border-color: #111827;
   box-shadow: 0 0 6px rgba(0,123,255,0.2);
 }
 
@@ -151,13 +183,13 @@ h2 {
   border-radius: 25px;
   cursor: pointer;
   border: none;
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, #111827, #111827);
   color: #fff;
   font-weight: 600;
   transition: all 0.3s ease;
 }
 .btn-search:hover {
-  background: linear-gradient(135deg, #0056b3, #00408f);
+  background: linear-gradient(135deg, #111827, #111827);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }

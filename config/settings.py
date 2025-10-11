@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
     "catalog",
     "emails",
+    'django_select2',  # ✅ django-select2 for searchable dropdowns
 
     # Cloudinary for media
     "cloudinary",
@@ -125,3 +126,18 @@ LOGOUT_REDIRECT_URL = "emails:home"
 
 # DEFAULT PK FIELD TYPE
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    },
+    "select2": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://default:rJdPt4dkvwHrQEYj7EhfplcND4Cms3D7@redis-14830.crce179.ap-south-1-1.ec2.redns.redis-cloud.com:14830",  # database 2 for Select2
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    },
+}
+
+SELECT2_CACHE_BACKEND = "select2"

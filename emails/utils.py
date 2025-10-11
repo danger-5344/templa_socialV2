@@ -21,3 +21,5 @@ def append_query_params(url, params: dict):
     existing.update({k: v for k, v in params.items() if v is not None})
     new_query = urlencode(existing, doseq=True)
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+
+

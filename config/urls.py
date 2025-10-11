@@ -11,6 +11,8 @@ urlpatterns = [
     path('catalog/', include('catalog.urls')),
     path('emails/', include('emails.urls')),
     path('', RedirectView.as_view(pattern_name='emails:home', permanent=False)),
+      # Add this line for django-select2
+    path('select2/', include('django_select2.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 from django.conf.urls.static import static
 from django.conf import settings
+from .views import OfferLinkAutocomplete
 
 app_name = "emails"
 
@@ -10,6 +11,7 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("mine/", views.my_templates, name="my_templates"),
     path("create/", views.template_create, name="template_create"),
+    path('offerlink-autocomplete/', OfferLinkAutocomplete.as_view(), name='offerlink-autocomplete'),
     path("<int:pk>/edit/", views.template_edit, name="template_edit"),
     path("<int:pk>/use/", views.template_use, name="template_use"),
     path("<int:pk>/delete/", views.template_delete, name="template_delete"),

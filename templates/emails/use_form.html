@@ -1,28 +1,17 @@
 {% extends 'base.html' %}
+<head>
+    {% load static %}
+    {{ form.media.css }}
+</head>
 {% block content %}
-
 <div class="max-w-3xl mx-auto px-4 py-10">
 
-  <!-- Card -->
   <div class="bg-gradient-to-br from-white to-gray-100 rounded-xl shadow-lg p-8 transform transition hover:-translate-y-1 hover:shadow-xl">
-
-    <!-- Title -->
     <h2 class="text-2xl font-bold text-gray-900 text-center mb-6">
       ⚡ Use Template: <span class="text-blue-600">{{ template.title }}</span>
     </h2>
 
-    <!-- Detected Fields -->
-    <div class="flex flex-wrap gap-2 mb-6 p-3 border border-dashed border-gray-300 rounded-lg bg-gray-50 text-sm text-gray-700">
-      🔍 Detected fields:
-      {% for f in detected %}
-        <code class="bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-medium">{{ f }}</code>
-      {% empty %}
-        <span class="text-gray-400">None</span>
-      {% endfor %}
-    </div>
-
-    <!-- Form -->
-    <form method="post" class="space-y-5" id="useTemplateForm">
+    <form method="post" id="useTemplateForm" class="space-y-5">
       {% csrf_token %}
 
       <!-- Platform -->
@@ -37,7 +26,13 @@
         {{ form.offer_link }}
       </div>
 
-      <!-- CTA / Fallback -->
+      <!-- CTA Text -->
+      <div class="flex flex-col gap-1">
+        {{ form.cta_text.label_tag }}
+        {{ form.cta_text }}
+      </div>
+
+      <!-- Fallback URL -->
       <div class="flex flex-col gap-1">
         {{ form.cta_fallback_url.label_tag }}
         {{ form.cta_fallback_url }}
@@ -45,29 +40,26 @@
 
       <hr class="border-gray-200">
 
-      <!-- Submit Button -->
       <div class="text-right">
         <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition transform hover:-translate-y-1 hover:bg-blue-700 active:scale-95">
           🚀 Generate
         </button>
       </div>
-
     </form>
   </div>
 </div>
-
-<!-- JS to add Tailwind classes to form fields -->
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  {{ form.media.js }}
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const inputs = document.querySelectorAll('#useTemplateForm input, #useTemplateForm select, #useTemplateForm textarea');
     inputs.forEach(input => {
       input.classList.add(
-        'border-gray-300', 'rounded-lg', 'p-3', 
-        'focus:ring-2', 'focus:ring-blue-500', 'focus:border-blue-500', 
+        'border-gray-300', 'rounded-lg', 'p-3',
+        'focus:ring-2', 'focus:ring-blue-500', 'focus:border-blue-500',
         'bg-gray-50', 'transition'
       );
     });
   });
 </script>
-
 {% endblock %}

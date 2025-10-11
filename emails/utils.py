@@ -1,6 +1,7 @@
 
 import re
-from urllib.parse import urlencode, urlparse, parse_qsl, urlunparse
+from urllib.parse import urlencode, urlparse, parse_qsl, urlunparse,  quote
+
 
 PLACEHOLDER_PATTERN = re.compile(r"\{\{\s*([a-zA-Z0-9_\.\-]+)\s*\}\}")
 
@@ -16,10 +17,14 @@ def fill_placeholders(text, mapping):
 def append_query_params(url, params: dict):
     if not url:
         return ""
+
     parsed = urlparse(url)
-    existing = dict(parse_qsl(parsed.query))
+    existing = dict(parse_qsl(parsed.query, keep_blank_values=True))
     existing.update({k: v for k, v in params.items() if v is not None})
-    new_query = urlencode(existing, doseq=True)
+
+    # Build query manually without encoding
+    new_query = "&".join(f"{k}={v}" for k, v in existing.items())
+
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
 
 

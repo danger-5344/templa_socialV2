@@ -70,7 +70,6 @@ class UseTemplateForm(forms.Form):
             attrs={'data-placeholder': 'Type to search…'}
         )
     )
-    cta_text = forms.CharField(required=False, help_text="Anchor text for CTA button/link")
     cta_fallback_url = forms.URLField(required=False, help_text="Used if no Offer Link selected")
 
     def __init__(self, *args, **kwargs):
